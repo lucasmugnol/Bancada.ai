@@ -940,3 +940,179 @@ body {
     from { opacity: 0; transform: translateX(30px); }
     to { opacity: 1; transform: translateX(0); }
 }
+
+/* ==========================================================================
+   MÓDULO DE MAPA GEOPOLÍTICO & TERRITORIAL
+   ========================================================================== */
+.map-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .map-layout-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.map-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.leaflet-map-container {
+    width: 100%;
+    height: 580px;
+    background: #e2e8f0;
+    z-index: 10;
+}
+
+.map-floating-legend {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    z-index: 500;
+    box-shadow: var(--shadow-md);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot.green { background-color: var(--emerald); }
+.legend-dot.yellow { background-color: var(--amber); }
+.legend-dot.red { background-color: var(--danger); }
+.legend-dot.blue { background-color: var(--primary); }
+.legend-dot.gray { background-color: #94a3b8; }
+
+.legend-dot.pulsate {
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0.5);
+    animation: pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.map-city-details-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.map-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.map-city-flag-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--navy-900), var(--primary));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+}
+
+/* Custom Leaflet Pin Markers */
+.geo-pin {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.geo-pin:hover {
+    transform: scale(1.25);
+    z-index: 1000 !important;
+}
+
+.geo-pin.green { background: #10b981; }
+.geo-pin.yellow { background: #f59e0b; }
+.geo-pin.red { background: #ef4444; animation: pulseDot 1.4s infinite; }
+.geo-pin.blue { background: #0284c7; }
+.geo-pin.gray { background: #64748b; }
+
+/* Regional Cards */
+.region-card {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.region-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy-900);
+}
+
+.region-amount {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 4px 0 8px 0;
+}
+
+.region-bar {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.region-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--emerald));
+    border-radius: 4px;
+}
+
+.region-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+}

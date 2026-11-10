@@ -10,6 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -46,6 +49,11 @@
             <button class="nav-btn" data-view="cidades">
                 <i class="fa-solid fa-map-location-dot"></i>
                 <span>Dossiê das Cidades</span>
+            </button>
+            <button class="nav-btn" data-view="mapa">
+                <i class="fa-solid fa-earth-americas"></i>
+                <span>Mapa Geopolítico</span>
+                <span class="badge-counter" style="background: #10b981;">65 Cidades</span>
             </button>
             <button class="nav-btn" data-view="campo">
                 <i class="fa-solid fa-mobile-screen"></i>
@@ -1026,6 +1034,205 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- MÓDULO 6: MAPA GEOPOLÍTICO DOS ESTADOS & MUNICÍPIOS                -->
+        <!-- ================================================================== -->
+        <section id="view-mapa" class="view-panel">
+            
+            <!-- Barra Superior do Mapa -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <div class="card-title">
+                            <i class="fa-solid fa-earth-americas" style="color: var(--primary);"></i>
+                            Mapa Geopolítico de Atuação & Recursos Parlamentares
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                            Visualização territorial das bases eleitorais, recursos pagos, diligências ativas e metas de reeleição.
+                        </p>
+                    </div>
+
+                    <!-- Controles de Estado e Visualização -->
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <div class="filter-group" style="min-width: 170px;">
+                            <label>Estado da Federação:</label>
+                            <select id="mapSelectUF" class="input-select" onchange="changeMapState(this.value)">
+                                <option value="PR" selected>PR • Paraná (Base Principal)</option>
+                                <option value="SP">SP • São Paulo</option>
+                                <option value="MG">MG • Minas Gerais</option>
+                                <option value="SC">SC • Santa Catarina</option>
+                                <option value="RS">RS • Rio Grande do Sul</option>
+                                <option value="BA">BA • Bahia</option>
+                                <option value="DF">DF • Brasília / Congresso</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group" style="min-width: 190px;">
+                            <label>Filtrar Camada no Mapa:</label>
+                            <select id="mapFilterLayer" class="input-select" onchange="filterMapMarkers(this.value)">
+                                <option value="todos">Todos os Municípios (65)</option>
+                                <option value="pagos">Apenas Recursos Pagos (Verde)</option>
+                                <option value="diligencias">Atenção / Diligências (Vermelho)</option>
+                                <option value="analise">Em Análise / Tramitação (Azul)</option>
+                                <option value="sem_recurso">Sem Emenda (Potencial Expansão)</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group" style="min-width: 160px;">
+                            <label>Aliança Política:</label>
+                            <select id="mapFilterAlliance" class="input-select" onchange="filterMapAlliance(this.value)">
+                                <option value="todos">Todas as Alianças</option>
+                                <option value="aliado">Prefeitos Aliados</option>
+                                <option value="neutro">Neutros / Em Conversa</option>
+                                <option value="oposicao">Oposição Local</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-outline" style="align-self: flex-end; height: 38px;" onclick="resetMapZoom()">
+                            <i class="fa-solid fa-crosshairs"></i> Centralizar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resumo Rápido dos Indicadores Territoriais -->
+                <div class="grid-4" style="padding-top: 10px; border-top: 1px solid var(--border); margin-top: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="legend-dot green"></span>
+                        <div style="font-size: 12px;"><strong>28 Cidades</strong> com Recursos Pagos</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="legend-dot red pulsate"></span>
+                        <div style="font-size: 12px;"><strong>2 Cidades</strong> com Risco de Perda</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="legend-dot blue"></span>
+                        <div style="font-size: 12px;"><strong>18 Cidades</strong> com Propostas na Caixa/FNS</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="legend-dot gray"></span>
+                        <div style="font-size: 12px;"><strong>17 Cidades</strong> de Expansão Política</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid do Mapa: Mapa Interativo (70%) + Dossiê do Município Selecionado (30%) -->
+            <div class="map-layout-grid">
+                
+                <!-- Container do Mapa Leaflet -->
+                <div class="map-wrapper">
+                    <div id="mapaLeaflet" class="leaflet-map-container"></div>
+                    
+                    <!-- Legenda Flutuante sobre o Mapa -->
+                    <div class="map-floating-legend">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--navy-900); text-transform: uppercase; margin-bottom: 6px;">Legenda Geopolítica</div>
+                        <div class="legend-item"><span class="legend-dot green"></span> Emenda Paga (Liberado)</div>
+                        <div class="legend-item"><span class="legend-dot yellow"></span> Empenhado (Garantido)</div>
+                        <div class="legend-item"><span class="legend-dot red pulsate"></span> Diligência Crítica</div>
+                        <div class="legend-item"><span class="legend-dot blue"></span> Proposta em Análise</div>
+                    </div>
+                </div>
+
+                <!-- Painel Lateral de Inteligência Territorial do Município Selecionado -->
+                <div class="card map-city-details-panel">
+                    
+                    <div class="map-panel-header">
+                        <div class="map-city-flag-badge" id="mapBadgeUF">PR</div>
+                        <div>
+                            <h3 id="mapPanelCityName" style="font-size: 20px; color: var(--navy-900);">Ponta Grossa</h3>
+                            <span id="mapPanelRegion" style="font-size: 12px; color: var(--text-muted);">Campos Gerais • 358.371 habitantes</span>
+                        </div>
+                    </div>
+
+                    <div style="margin: 14px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12px; color: var(--text-muted);">Alinhamento Político:</span>
+                            <span class="tag tag-success" id="mapPanelAlliance">Prefeito Aliado</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12px; color: var(--text-muted);">Prefeito Atual:</span>
+                            <strong id="mapPanelMayor" style="font-size: 13px; color: var(--navy-900);">Dr. Alisson Mendes (PSD)</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: var(--text-muted);">Votos no Município:</span>
+                            <strong id="mapPanelVotes" style="font-size: 13px; color: var(--primary);">18.420 votos (TSE 2022)</strong>
+                        </div>
+                    </div>
+
+                    <!-- Card de Recursos Destinados ao Município -->
+                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Recursos Pagos no Município</div>
+                        <div style="font-size: 22px; font-weight: 800; color: var(--emerald);" id="mapPanelBudget">R$ 4.250.000,00</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="mapPanelStatusText">
+                            ✓ 4 Emendas pagas • 1 em análise na Caixa
+                        </div>
+                    </div>
+
+                    <!-- Lista de Obras e Ações no Município -->
+                    <div style="margin-bottom: 16px;">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--navy-900); display: block; margin-bottom: 6px;">Principais Ações do Mandato:</span>
+                        <div id="mapPanelActionsList" style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+                            <div style="padding: 6px 10px; background: white; border: 1px solid var(--border); border-radius: 6px;">
+                                <strong>R$ 1.5M:</strong> Pavimentação Asfáltica Bairro Nova Rússia
+                            </div>
+                            <div style="padding: 6px 10px; background: white; border: 1px solid var(--border); border-radius: 6px;">
+                                <strong>R$ 1.8M:</strong> Tomógrafo para Hospital Regional
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação Imediata -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="btn btn-emerald" style="width: 100%;" onclick="openWhatsAppMapCity()">
+                            <i class="fa-brands fa-whatsapp"></i> Falar com Prefeito no WhatsApp
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%;" onclick="goToCityFromMap()">
+                            <i class="fa-solid fa-folder-open"></i> Abrir Dossiê Completo
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Cobertura por Macrorregiões do Estado -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-chart-pie" style="color: var(--purple);"></i>
+                        Distribuição Territorial por Macrorregiões (Paraná)
+                    </div>
+                </div>
+
+                <div class="grid-4">
+                    <div class="region-card">
+                        <div class="region-title">Campos Gerais</div>
+                        <div class="region-amount">R$ 9.4 M</div>
+                        <div class="region-bar"><div class="region-bar-fill" style="width: 85%;"></div></div>
+                        <span class="region-meta">12 Cidades • 85% Cobertura</span>
+                    </div>
+                    <div class="region-card">
+                        <div class="region-title">Oeste Paranaense</div>
+                        <div class="region-amount">R$ 8.2 M</div>
+                        <div class="region-bar"><div class="region-bar-fill" style="width: 70%;"></div></div>
+                        <span class="region-meta">14 Cidades • 70% Cobertura</span>
+                    </div>
+                    <div class="region-card">
+                        <div class="region-title">Sudoeste & Centro-Sul</div>
+                        <div class="region-amount">R$ 5.9 M</div>
+                        <div class="region-bar"><div class="region-bar-fill" style="width: 60%;"></div></div>
+                        <span class="region-meta">16 Cidades • 60% Cobertura</span>
+                    </div>
+                    <div class="region-card">
+                        <div class="region-title">Litoral & RMC</div>
+                        <div class="region-amount">R$ 3.8 M</div>
+                        <div class="region-bar"><div class="region-bar-fill" style="width: 45%;"></div></div>
+                        <span class="region-meta">8 Cidades • 45% Cobertura</span>
+                    </div>
                 </div>
             </div>
 

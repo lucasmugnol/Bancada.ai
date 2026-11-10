@@ -19,6 +19,7 @@ function initNavModules() {
         'editais': { name: 'Assessoria de Editais & Convênios', role: 'Radar Transferegov & Ministérios', initials: 'ED' },
         'emendas': { name: 'Dr. Renato (Consultor de Orçamento)', role: 'Gestão OGU & SIOP • Brasília', initials: 'RO' },
         'cidades': { name: 'Coordenação Política Estadual', role: 'Articulação de Prefeitos & Bases', initials: 'CP' },
+        'mapa': { name: 'Dr. Renato & Articulação Territorial', role: 'Mapa Geopolítico • Paraná & Brasil', initials: 'GEO' },
         'campo': { name: 'Luciana Santos (Liderança Regional)', role: 'Campo • Distrito Vila Esperança', initials: 'LS' }
     };
 
@@ -56,6 +57,7 @@ function switchView(targetView) {
         'editais': { name: 'Assessoria de Editais & Convênios', role: 'Radar Transferegov & Ministérios', initials: 'ED' },
         'emendas': { name: 'Dr. Renato (Consultor de Orçamento)', role: 'Gestão OGU & SIOP • Brasília', initials: 'RO' },
         'cidades': { name: 'Coordenação Política Estadual', role: 'Articulação de Prefeitos & Bases', initials: 'CP' },
+        'mapa': { name: 'Dr. Renato & Articulação Territorial', role: 'Mapa Geopolítico • Paraná & Brasil', initials: 'GEO' },
         'campo': { name: 'Luciana Santos (Liderança Regional)', role: 'Campo • Distrito Vila Esperança', initials: 'LS' }
     };
 
@@ -63,6 +65,10 @@ function switchView(targetView) {
     document.getElementById('userNameDisplay').textContent = info.name;
     document.getElementById('userRoleDisplay').textContent = info.role;
     document.getElementById('avatarInitials').textContent = info.initials;
+
+    if (targetView === 'mapa') {
+        setTimeout(initOrResizeMap, 150);
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -526,4 +532,500 @@ function showToast(message, type = 'info') {
         toast.style.animation = 'slideIn 0.3s reverse forwards';
         setTimeout(() => toast.remove(), 300);
     }, 3800);
+}
+
+/* --------------------------------------------------------------------------
+   8. Módulo de Mapa Geopolítico & Leaflet Integration
+   -------------------------------------------------------------------------- */
+let mapInstance = null;
+let markersGroup = null;
+let currentSelectedMapCity = null;
+
+// Base Geoespacial dos Municípios
+const geoMunicipalities = [
+    {
+        id: 'ponta-grossa',
+        nome: 'Ponta Grossa',
+        uf: 'PR',
+        lat: -25.0994,
+        lng: -50.1583,
+        regiao: 'Campos Gerais • 358k hab.',
+        prefeito: 'Dr. Alisson Mendes (PSD)',
+        alianca: 'aliado',
+        aliancaTexto: 'Prefeito Aliado de 1ª Hora',
+        statusTipo: 'pagos',
+        statusCor: 'green',
+        statusTexto: '4 Emendas Pagas na Conta (OB Emitida)',
+        totalPago: 'R$ 4.250.000,00',
+        votos: '18.420 votos (TSE 2022)',
+        acoes: [
+            { valor: 'R$ 1.5M', desc: 'Asfalto no Bairro Nova Rússia (Concluído)' },
+            { valor: 'R$ 1.8M', desc: 'Tomógrafo Hospital Regional (Inaugurado)' },
+            { valor: 'R$ 950k', desc: '3 Vans Escolares com Acessibilidade' }
+        ]
+    },
+    {
+        id: 'cascavel',
+        nome: 'Cascavel',
+        uf: 'PR',
+        lat: -24.9578,
+        lng: -53.4595,
+        regiao: 'Oeste Paranaense • 348k hab.',
+        prefeito: 'Leonaldo Paranhos (Podemos)',
+        alianca: 'aliado',
+        aliancaTexto: 'Parceiro Estratégico',
+        statusTipo: 'pagos',
+        statusCor: 'green',
+        statusTexto: 'Recursos Pagos na Conta da Prefeitura',
+        totalPago: 'R$ 3.800.000,00',
+        votos: '14.200 votos (TSE 2022)',
+        acoes: [
+            { valor: 'R$ 800k', desc: '2 Ambulâncias Tipo SAMU (Entregues)' },
+            { valor: 'R$ 3.0M', desc: 'Recapeamento Asfáltico Avenida Brasil' }
+        ]
+    },
+    {
+        id: 'guaratuba',
+        nome: 'Guaratuba',
+        uf: 'PR',
+        lat: -25.8828,
+        lng: -48.5747,
+        regiao: 'Litoral Paranaense • 38k hab.',
+        prefeito: 'Roberto Justos (União)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado • Risco Crítico de Diligência',
+        statusTipo: 'diligencias',
+        statusCor: 'red',
+        statusTexto: 'ALERTA: Faltam 48h para responder ao FNS',
+        totalPago: 'R$ 1.950.000,00',
+        votos: '4.890 votos',
+        acoes: [
+            { valor: 'R$ 850k', desc: 'DILIGÊNCIA: Posto de Saúde Central (Urgente)' },
+            { valor: 'R$ 1.1M', desc: 'Contenção de Encostas Orla da Praia' }
+        ]
+    },
+    {
+        id: 'laranjeiras',
+        nome: 'Laranjeiras do Sul',
+        uf: 'PR',
+        lat: -25.4078,
+        lng: -52.4158,
+        regiao: 'Centro-Sul • 32k hab.',
+        prefeito: 'Beto Brandão (MDB)',
+        alianca: 'aliado',
+        aliancaTexto: 'Base Forte no Centro-Sul',
+        statusTipo: 'pagos',
+        statusCor: 'green',
+        statusTexto: 'Equipamentos Rurais Entregues',
+        totalPago: 'R$ 1.800.000,00',
+        votos: '5.120 votos (Mais votado)',
+        acoes: [
+            { valor: 'R$ 450k', desc: 'Patrulha Mecanizada MAPA (Trator e Grade)' },
+            { valor: 'R$ 1.35M', desc: 'Pavimentação Rural com Pedras Irregulares' }
+        ]
+    },
+    {
+        id: 'patobranco',
+        nome: 'Pato Branco',
+        uf: 'PR',
+        lat: -26.2289,
+        lng: -52.6708,
+        regiao: 'Sudoeste Paranaense • 92k hab.',
+        prefeito: 'Robson Cantu (PSD)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado Regional',
+        statusTipo: 'pagos',
+        statusCor: 'green',
+        statusTexto: 'Parque Tecnológico e Saúde',
+        totalPago: 'R$ 2.400.000,00',
+        votos: '8.340 votos',
+        acoes: [
+            { valor: 'R$ 1.0M', desc: 'Infraestrutura Parque Tecnológico' },
+            { valor: 'R$ 1.4M', desc: 'Custeio Hospital do Câncer Sudoeste' }
+        ]
+    },
+    {
+        id: 'piraidosul',
+        nome: 'Piraí do Sul',
+        uf: 'PR',
+        lat: -24.5256,
+        lng: -49.9489,
+        regiao: 'Campos Gerais • 26k hab.',
+        prefeito: 'Henrique Carneiro (Republicanos)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado • Diligência em Andamento',
+        statusTipo: 'diligencias',
+        statusCor: 'red',
+        statusTexto: 'Diligência FNDE: Falta matrícula da creche',
+        totalPago: 'R$ 900.000,00',
+        votos: '3.420 votos',
+        acoes: [
+            { valor: 'R$ 400k', desc: 'Creche Municipal (Diligência 5 dias)' },
+            { valor: 'R$ 500k', desc: 'Caminhão Caçamba Basculante (Pago)' }
+        ]
+    },
+    {
+        id: 'francisco-beltrao',
+        nome: 'Francisco Beltrão',
+        uf: 'PR',
+        lat: -26.0811,
+        lng: -53.0550,
+        regiao: 'Sudoeste • 96k hab.',
+        prefeito: 'Cleber Fontana (PSDB)',
+        alianca: 'neutro',
+        aliancaTexto: 'Relação Institucional / Neutro',
+        statusTipo: 'analise',
+        statusCor: 'yellow',
+        statusTexto: 'Nota de Empenho Emitida no Ministério',
+        totalPago: 'R$ 1.000.000,00',
+        votos: '4.610 votos',
+        acoes: [
+            { valor: 'R$ 1.0M', desc: 'Raio-X e Ultrassom para a UPA (Empenhado)' }
+        ]
+    },
+    {
+        id: 'curitiba',
+        nome: 'Curitiba',
+        uf: 'PR',
+        lat: -25.4284,
+        lng: -49.2733,
+        regiao: 'Capital • 1.8M hab.',
+        prefeito: 'Eduardo Pimentel (PSD)',
+        alianca: 'aliado',
+        aliancaTexto: 'Parceria de Capital',
+        statusTipo: 'pagos',
+        statusCor: 'green',
+        statusTexto: 'Emendas de Bancada Estadual',
+        totalPago: 'R$ 6.500.000,00',
+        votos: '34.800 votos (Colégio Principal)',
+        acoes: [
+            { valor: 'R$ 3.5M', desc: 'Complexo de Saúde do Trabalhador' },
+            { valor: 'R$ 3.0M', desc: 'Recursos para o Hospital Pequeno Príncipe' }
+        ]
+    },
+    {
+        id: 'londrina',
+        nome: 'Londrina',
+        uf: 'PR',
+        lat: -23.3045,
+        lng: -51.1696,
+        regiao: 'Norte Paranaense • 555k hab.',
+        prefeito: 'Tiago Amaral (PSD)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado no Norte',
+        statusTipo: 'analise',
+        statusCor: 'blue',
+        statusTexto: 'Proposta em Análise no Ministério das Cidades',
+        totalPago: 'R$ 2.100.000,00',
+        votos: '12.800 votos',
+        acoes: [
+            { valor: 'R$ 2.1M', desc: 'Drenagem e Asfalto Zona Norte' }
+        ]
+    },
+    {
+        id: 'maringa',
+        nome: 'Maringá',
+        uf: 'PR',
+        lat: -23.4205,
+        lng: -51.9331,
+        regiao: 'Noroeste • 410k hab.',
+        prefeito: 'Silvio Barros (PP)',
+        alianca: 'neutro',
+        aliancaTexto: 'Em Negociação Política',
+        statusTipo: 'analise',
+        statusCor: 'blue',
+        statusTexto: 'Projeto em Análise na Caixa Econômica',
+        totalPago: 'R$ 1.200.000,00',
+        votos: '9.400 votos',
+        acoes: [
+            { valor: 'R$ 1.2M', desc: 'Ciclovia e Iluminação Urbana' }
+        ]
+    },
+    {
+        id: 'foz-do-iguacu',
+        nome: 'Foz do Iguaçu',
+        uf: 'PR',
+        lat: -25.5163,
+        lng: -54.5854,
+        regiao: 'Tríplice Fronteira • 285k hab.',
+        prefeito: 'General Silva e Luna (PL)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliança Estratégica de Fronteira',
+        statusTipo: 'pagos',
+        statusCor: 'green',
+        statusTexto: 'Recursos Pagos via Itaipu / Governo Federal',
+        totalPago: 'R$ 3.200.000,00',
+        votos: '11.100 votos',
+        acoes: [
+            { valor: 'R$ 2.0M', desc: 'Equipamentos Hospital Municipal Padre Germano' },
+            { valor: 'R$ 1.2M', desc: 'Segurança Pública e Monitoramento' }
+        ]
+    },
+    {
+        id: 'castro',
+        nome: 'Castro',
+        uf: 'PR',
+        lat: -24.7911,
+        lng: -50.0119,
+        regiao: 'Campos Gerais • 73k hab.',
+        prefeito: 'Neto Fadel (PSD)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado Agro / Cooperativas',
+        statusTipo: 'analise',
+        statusCor: 'blue',
+        statusTexto: 'Emenda Pix Cadastrada (Aguardando Aceite)',
+        totalPago: 'R$ 600.000,00',
+        votos: '4.800 votos',
+        acoes: [
+            { valor: 'R$ 600k', desc: 'Custeio Geral Municipal (Emenda Pix)' }
+        ]
+    },
+    {
+        id: 'prudentopolis',
+        nome: 'Prudentópolis',
+        uf: 'PR',
+        lat: -25.2133,
+        lng: -50.9781,
+        regiao: 'Centro-Sul • 52k hab.',
+        prefeito: 'Osnei Stadler (DEM)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado Tradicional',
+        statusTipo: 'analise',
+        statusCor: 'blue',
+        statusTexto: 'Proposta de Postos de Saúde em Análise',
+        totalPago: 'R$ 500.000,00',
+        votos: '3.900 votos',
+        acoes: [
+            { valor: 'R$ 500k', desc: 'Reforma de 2 UBS na Zona Rural' }
+        ]
+    },
+    {
+        id: 'candoi',
+        nome: 'Candói',
+        uf: 'PR',
+        lat: -25.5706,
+        lng: -52.0369,
+        regiao: 'Centro-Sul • 16k hab.',
+        prefeito: 'Dino Goldoni (PSD)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado Municipal',
+        statusTipo: 'analise',
+        statusCor: 'yellow',
+        statusTexto: 'Empenho Aprovado no Min. do Esporte',
+        totalPago: 'R$ 550.000,00',
+        votos: '2.100 votos',
+        acoes: [
+            { valor: 'R$ 550k', desc: 'Complexo Esportivo Campo Sintético' }
+        ]
+    },
+    {
+        id: 'reserva-do-iguacu',
+        nome: 'Reserva do Iguaçu',
+        uf: 'PR',
+        lat: -25.8550,
+        lng: -52.0300,
+        regiao: 'Centro-Sul • 8k hab.',
+        prefeito: 'Viturino Vasso (MDB)',
+        alianca: 'aliado',
+        aliancaTexto: 'Aliado Local',
+        statusTipo: 'analise',
+        statusCor: 'blue',
+        statusTexto: 'Caminhão Pipa em Elaboração de Termo',
+        totalPago: 'R$ 350.000,00',
+        votos: '1.400 votos',
+        acoes: [
+            { valor: 'R$ 350k', desc: 'Aquisição de Caminhão Pipa MAPA' }
+        ]
+    },
+    {
+        id: 'campo-mourao',
+        nome: 'Campo Mourão',
+        uf: 'PR',
+        lat: -24.0456,
+        lng: -52.3789,
+        regiao: 'Centro-Oeste • 99k hab.',
+        prefeito: 'Tauillo Tezelli (Cidadania)',
+        alianca: 'oposicao',
+        aliancaTexto: 'Oposição Local • Alvo de Expansão',
+        statusTipo: 'sem_recurso',
+        statusCor: 'gray',
+        statusTexto: 'Sem Emenda Destinada (Potencial Eleitoral)',
+        totalPago: 'R$ 0,00',
+        votos: '2.150 votos (Oportunidade de Crescimento)',
+        acoes: [
+            { valor: 'Meta', desc: 'Cadastrar Edital do MAPA para cooperativas locais' }
+        ]
+    }
+];
+
+// Coordenadas Centrais dos Estados
+const stateCenters = {
+    'PR': { center: [-24.89, -51.55], zoom: 7, name: 'Paraná' },
+    'SP': { center: [-22.50, -48.50], zoom: 7, name: 'São Paulo' },
+    'MG': { center: [-18.50, -44.50], zoom: 6, name: 'Minas Gerais' },
+    'SC': { center: [-27.24, -50.21], zoom: 7, name: 'Santa Catarina' },
+    'RS': { center: [-30.00, -53.00], zoom: 7, name: 'Rio Grande do Sul' },
+    'BA': { center: [-12.50, -41.70], zoom: 6, name: 'Bahia' },
+    'DF': { center: [-15.79, -47.88], zoom: 11, name: 'Distrito Federal' }
+};
+
+function initOrResizeMap() {
+    const mapEl = document.getElementById('mapaLeaflet');
+    if (!mapEl) return;
+
+    if (!mapInstance) {
+        // Inicializa o mapa com foco no Paraná
+        mapInstance = L.map('mapaLeaflet', {
+            center: [-24.89, -51.55],
+            zoom: 7,
+            zoomControl: true,
+            scrollWheelZoom: true
+        });
+
+        // Tiles limpos e modernos do CartoDB Positron
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CartoDB',
+            maxZoom: 18
+        }).addTo(mapInstance);
+
+        markersGroup = L.layerGroup().addTo(mapInstance);
+        renderMapMarkers('todos', 'todos');
+
+        // Seleciona Ponta Grossa por padrão
+        selectCityOnMap(geoMunicipalities[0]);
+    } else {
+        mapInstance.invalidateSize();
+    }
+}
+
+function renderMapMarkers(filterLayer = 'todos', filterAlliance = 'todos') {
+    if (!markersGroup || !mapInstance) return;
+    markersGroup.clearLayers();
+
+    geoMunicipalities.forEach(city => {
+        // Filtro de Camada (Status)
+        if (filterLayer !== 'todos' && city.statusTipo !== filterLayer) {
+            return;
+        }
+
+        // Filtro de Aliança Política
+        if (filterAlliance !== 'todos' && city.alianca !== filterAlliance) {
+            return;
+        }
+
+        // Cria ícone personalizado HTML
+        const iconHtml = `<div class="geo-pin ${city.statusCor}" title="${city.nome}">
+            <i class="fa-solid ${city.statusCor === 'red' ? 'fa-exclamation' : 'fa-building-columns'}"></i>
+        </div>`;
+
+        const customIcon = L.divIcon({
+            html: iconHtml,
+            className: 'custom-geo-icon',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+
+        const marker = L.marker([city.lat, city.lng], { icon: customIcon });
+
+        // Tooltip ao passar o mouse
+        marker.bindTooltip(`<strong>${city.nome} (${city.uf})</strong><br>${city.totalPago}<br><span style="font-size: 10px; color: ${city.statusCor === 'red' ? '#ef4444' : '#059669'};">${city.statusTexto}</span>`, {
+            direction: 'top',
+            offset: [0, -10]
+        });
+
+        // Clique para selecionar a cidade
+        marker.on('click', () => {
+            selectCityOnMap(city);
+        });
+
+        markersGroup.addLayer(marker);
+    });
+}
+
+function selectCityOnMap(city) {
+    currentSelectedMapCity = city;
+
+    document.getElementById('mapBadgeUF').textContent = city.uf;
+    document.getElementById('mapPanelCityName').textContent = city.nome;
+    document.getElementById('mapPanelRegion').textContent = city.regiao;
+    
+    const allianceEl = document.getElementById('mapPanelAlliance');
+    allianceEl.textContent = city.aliancaTexto;
+    if (city.statusCor === 'red') {
+        allianceEl.className = 'tag tag-req';
+        allianceEl.style.background = '#fee2e2';
+        allianceEl.style.color = '#b91c1c';
+    } else if (city.alianca === 'aliado') {
+        allianceEl.className = 'tag tag-success';
+        allianceEl.style.background = '';
+        allianceEl.style.color = '';
+    } else {
+        allianceEl.className = 'tag tag-pl';
+        allianceEl.style.background = '';
+        allianceEl.style.color = '';
+    }
+
+    document.getElementById('mapPanelMayor').textContent = city.prefeito;
+    document.getElementById('mapPanelVotes').textContent = city.votos;
+    document.getElementById('mapPanelBudget').textContent = city.totalPago;
+    document.getElementById('mapPanelStatusText').innerHTML = `
+        <span style="color: ${city.statusCor === 'red' ? '#b91c1c; font-weight: 700;' : 'var(--text-muted)'}">
+            ${city.statusTexto}
+        </span>
+    `;
+
+    // Renderiza lista de ações
+    const actionsContainer = document.getElementById('mapPanelActionsList');
+    actionsContainer.innerHTML = city.acoes.map(a => `
+        <div style="padding: 6px 10px; background: white; border: 1px solid var(--border); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span>${a.desc}</span>
+            <strong style="color: var(--navy-900);">${a.valor}</strong>
+        </div>
+    `).join('');
+
+    // Centraliza levemente com panTo
+    if (mapInstance) {
+        mapInstance.panTo([city.lat, city.lng], { animate: true, duration: 0.5 });
+    }
+}
+
+function changeMapState(uf) {
+    const state = stateCenters[uf] || stateCenters['PR'];
+    if (mapInstance) {
+        mapInstance.setView(state.center, state.zoom, { animate: true });
+    }
+    showToast(`Visualização ajustada para: ${state.name} (${uf})`, 'info');
+}
+
+function filterMapMarkers(layer) {
+    const alliance = document.getElementById('mapFilterAlliance').value;
+    renderMapMarkers(layer, alliance);
+    showToast(`Filtro de camada aplicado: ${layer}`, 'info');
+}
+
+function filterMapAlliance(alliance) {
+    const layer = document.getElementById('mapFilterLayer').value;
+    renderMapMarkers(layer, alliance);
+    showToast(`Filtro de aliança política aplicado: ${alliance}`, 'info');
+}
+
+function resetMapZoom() {
+    const uf = document.getElementById('mapSelectUF').value;
+    const state = stateCenters[uf] || stateCenters['PR'];
+    if (mapInstance) {
+        mapInstance.setView(state.center, state.zoom, { animate: true });
+    }
+    showToast('Mapa centralizado.', 'info');
+}
+
+function openWhatsAppMapCity() {
+    if (!currentSelectedMapCity) return;
+    showToast(`Iniciando WhatsApp para o Prefeito de ${currentSelectedMapCity.nome}...`, 'success');
+}
+
+function goToCityFromMap() {
+    if (!currentSelectedMapCity) return;
+    switchView('cidades');
+    loadCityDetails(currentSelectedMapCity.id);
+    showToast(`Abrindo dossiê completo de ${currentSelectedMapCity.nome}`, 'info');
 }
