@@ -5,6 +5,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     initNavModules();
     initQuickCitySearch();
+    autoLoadEditais();
+    autoLoadEmendas();
 });
 
 /* --------------------------------------------------------------------------
@@ -68,6 +70,12 @@ function switchView(targetView) {
 
     if (targetView === 'mapa') {
         setTimeout(initOrResizeMap, 150);
+    }
+    if (targetView === 'editais') {
+        autoLoadEditais();
+    }
+    if (targetView === 'emendas') {
+        autoLoadEmendas();
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -170,52 +178,535 @@ function openWhatsAppCity() {
 }
 
 /* --------------------------------------------------------------------------
-   3. Radar de Editais Federais
+   3. Radar de Editais Federais (Carregamento Automático com Robô Bancada.ai)
    -------------------------------------------------------------------------- */
+const databaseEditais = [
+    {
+        id: 'edital-mapa-1',
+        orgao: 'MAPA',
+        tagTexto: 'MAPA • AGRICULTURA',
+        tagClass: 'tag-pl',
+        titulo: 'Edital n.º 14/2026 – Aquisição de Patrulhas Mecanizadas e Caminhões Caçamba',
+        fonte: 'Publicado no DOU • Transferegov Programa n.º 5400020260014',
+        valor: 'Até R$ 650.000',
+        valorNumerico: 650000,
+        prazo: '28/11/2026 (Faltam 18 dias)',
+        elegibilidade: 'Municípios com até 50 mil hab. com agricultura familiar. Permite compra de trator agrícola, grade e caçamba basculante.',
+        matchTexto: '12 Cidades da sua base são elegíveis!',
+        cidadesMatch: ['Laranjeiras do Sul', 'Pato Branco', 'Prudentópolis', 'Reserva do Iguaçu', 'Candói'],
+        isHighlight: true
+    },
+    {
+        id: 'edital-fns-2',
+        orgao: 'MS',
+        tagTexto: 'MINISTÉRIO DA SAÚDE • FNS',
+        tagClass: 'tag-indica',
+        titulo: 'Portaria n.º 2.410 – Renovação de Frota do Transporte Sanitário Eletivo (Vans Adaptadas)',
+        fonte: 'Fundo Nacional de Saúde • Habilitação Fundo a Fundo',
+        valor: 'R$ 380.000 / Van',
+        valorNumerico: 380000,
+        prazo: '22/11/2026 (Faltam 12 dias)',
+        elegibilidade: 'Municípios que necessitam transportar pacientes para hemodiálise e oncologia em cidades polo.',
+        matchTexto: '8 Cidades com demanda aberta no gabinete!',
+        cidadesMatch: ['Guaratuba', 'Piraí do Sul', 'Irati', 'Palmeira'],
+        isHighlight: false
+    },
+    {
+        id: 'edital-mcid-3',
+        orgao: 'MCID',
+        tagTexto: 'MINISTÉRIO DAS CIDADES',
+        tagClass: 'tag-req',
+        titulo: 'Chamada Pública n.º 07/2026 – Pavimentação Asfáltica e Iluminação de Vias Rurais',
+        fonte: 'Secretaria Nacional de Periferias e Mobilidade Urbana',
+        valor: 'Até R$ 2.000.000',
+        valorNumerico: 2000000,
+        prazo: '05/12/2026 (Faltam 25 dias)',
+        elegibilidade: 'Cidades com projetos de engenharia prontos para asfalto ou calçamento poliédrico e lâmpadas de LED.',
+        matchTexto: '5 Cidades com projetos já validados',
+        cidadesMatch: ['Cascavel', 'Ponta Grossa', 'Castro'],
+        isHighlight: false
+    },
+    {
+        id: 'edital-fnde-4',
+        orgao: 'MEC',
+        tagTexto: 'MEC • FNDE',
+        tagClass: 'tag-pl',
+        titulo: 'Programa Caminho da Escola 2026 – Aquisição de Ônibus Escolares Rurais 4x4',
+        fonte: 'Fundo Nacional de Desenvolvimento da Educação • Resolução nº 18',
+        valor: 'R$ 420.000 / Veículo',
+        valorNumerico: 420000,
+        prazo: '15/12/2026 (Faltam 35 dias)',
+        elegibilidade: 'Atendimento a estudantes residentes na zona rural de difícil acesso geográfico.',
+        matchTexto: '9 Cidades aptas no Paraná',
+        cidadesMatch: ['Prudentópolis', 'Laranjeiras do Sul', 'Candói', 'Reserva do Iguaçu'],
+        isHighlight: false
+    },
+    {
+        id: 'edital-mesp-5',
+        orgao: 'MESP',
+        tagTexto: 'MINISTÉRIO DO ESPORTE',
+        tagClass: 'tag-indica',
+        titulo: 'Programa Areninhas Brasil – Implantação de Campos de Futebol Society Sintético com LED',
+        fonte: 'Secretaria Nacional de Esporte Amador • Portaria MESP nº 98',
+        valor: 'R$ 550.000',
+        valorNumerico: 550000,
+        prazo: '30/11/2026 (Faltam 20 dias)',
+        elegibilidade: 'Municípios com terrenos públicos desimpedidos em bairros de periferia.',
+        matchTexto: '6 Cidades com terreno cadastrado',
+        cidadesMatch: ['Candói', 'Pato Branco', 'Francisco Beltrão'],
+        isHighlight: false
+    },
+    {
+        id: 'edital-mds-6',
+        orgao: 'MDS',
+        tagTexto: 'DESENVOLVIMENTO SOCIAL',
+        tagClass: 'tag-req',
+        titulo: 'Mobilidade no SUAS – Aquisição de Veículos para Atendimento a CRAS e CREAS',
+        fonte: 'Fundo Nacional de Assistência Social • Portaria nº 412',
+        valor: 'R$ 180.000',
+        valorNumerico: 180000,
+        prazo: '10/12/2026 (Faltam 30 dias)',
+        elegibilidade: 'Centros de Referência de Assistência Social ativos no CadSUAS.',
+        matchTexto: '14 Cidades elegíveis',
+        cidadesMatch: ['Guaratuba', 'Piraí do Sul', 'Palmeira', 'Irati'],
+        isHighlight: false
+    },
+    {
+        id: 'edital-minc-7',
+        orgao: 'MINC',
+        tagTexto: 'MINISTÉRIO DA CULTURA',
+        tagClass: 'tag-pl',
+        titulo: 'Edital Cultura Viva – Modernização de Casas de Cultura e Patrimônio Histórico',
+        fonte: 'Plataforma Transferegov • Política Nacional Aldir Blanc',
+        valor: 'Até R$ 300.000',
+        valorNumerico: 300000,
+        prazo: '02/12/2026 (Faltam 22 dias)',
+        elegibilidade: 'Prefeituras com Plano Municipal de Cultura aprovado em conselho.',
+        matchTexto: '4 Cidades com plano ativo',
+        cidadesMatch: ['Castro', 'Ponta Grossa', 'Laranjeiras do Sul'],
+        isHighlight: false
+    },
+    {
+        id: 'edital-itaipu-8',
+        orgao: 'MCID',
+        tagTexto: 'ITAIPU • SUSTENTABILIDADE',
+        tagClass: 'tag-indica',
+        titulo: 'Linha Ecológica 2026 – Recuperação de Estradas Rurais e Adequação de Microbacias',
+        fonte: 'Convênio Itaipu Binacional & Governo Federal',
+        valor: 'Até R$ 1.200.000',
+        valorNumerico: 1200000,
+        prazo: '20/12/2026 (Faltam 40 dias)',
+        elegibilidade: 'Municípios da bacia do Paraná III e região lindeira ao lago de Itaipu.',
+        matchTexto: '7 Cidades na área de abrangência',
+        cidadesMatch: ['Cascavel', 'Foz do Iguaçu', 'Toledo'],
+        isHighlight: false
+    }
+];
+
+function autoLoadEditais(filteredList = null) {
+    const container = document.getElementById('liveEditaisFeedContainer');
+    if (!container) return;
+
+    const list = filteredList || databaseEditais;
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const timeEl = document.getElementById('radarLastScanTime');
+    if (timeEl) timeEl.textContent = `Hoje às ${timeStr}`;
+
+    container.innerHTML = list.map(ed => `
+        <div class="edital-card ${ed.isHighlight ? 'highlight' : ''}" id="${ed.id}">
+            <div class="edital-header">
+                <div>
+                    <span class="tag ${ed.tagClass}">${ed.tagTexto}</span>
+                    <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
+                        ${ed.titulo}
+                    </h3>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        ${ed.fonte}
+                    </div>
+                </div>
+                <div class="edital-badge-puro">
+                    <div class="edital-valor">${ed.valor}</div>
+                    <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: ${ed.prazo}</span>
+                </div>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                <strong>Elegibilidade:</strong> ${ed.elegibilidade}
+            </p>
+
+            <div class="edital-footer">
+                <div class="ai-match-tag">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> ${ed.matchTexto}
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('${ed.tagTexto}', ${JSON.stringify(ed.cidadesMatch).replace(/"/g, '&quot;')})">
+                        <i class="fa-solid fa-robot"></i> Ver Análise de Match
+                    </button>
+                    <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('${ed.titulo}', '${ed.valor}', '${ed.prazo}')">
+                        <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    const countBadge = document.getElementById('badgeEditais');
+    if (countBadge) countBadge.textContent = list.length;
+}
+
 function simulateSyncEditais() {
     const btn = event.currentTarget;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Varrendo Transferegov...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Robô Varrendo Transferegov & DOU...';
     btn.disabled = true;
+
+    const statusText = document.getElementById('radarStatusText');
+    if (statusText) statusText.textContent = 'Consultando novos editais nos servidores dos Ministérios...';
 
     setTimeout(() => {
         btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sincronizar Agora';
         btn.disabled = false;
-        showToast('Radar atualizado! 1 novo edital do Ministério do Esporte detectado.', 'success');
-    }, 1200);
+        if (statusText) statusText.textContent = 'Monitoramento ativo e atualizado com Transferegov e Ministérios';
+        autoLoadEditais();
+        showToast('Radar atualizado! 8 Editais Oficiais carregados com cruzamento de elegibilidade.', 'success');
+    }, 1000);
 }
 
 function filterEditais() {
-    const val = document.getElementById('filterOrgao').value;
-    const cards = document.querySelectorAll('.edital-card');
+    const orgao = document.getElementById('filterOrgao').value;
+    if (orgao === 'todos') {
+        autoLoadEditais();
+    } else {
+        const filtered = databaseEditais.filter(e => e.orgao === orgao);
+        autoLoadEditais(filtered);
+    }
+    showToast(`Filtro aplicado para: ${orgao}`, 'info');
+}
 
-    cards.forEach(c => {
-        if (val === 'todos') {
-            c.style.display = 'block';
-        } else if (val === 'MAPA' && c.id === 'edital-1') {
-            c.style.display = 'block';
-        } else if (val === 'MS' && c.id === 'edital-2') {
-            c.style.display = 'block';
-        } else if (val === 'MCID' && c.id === 'edital-3') {
-            c.style.display = 'block';
-        } else {
-            c.style.display = 'none';
-        }
-    });
-    showToast(`Filtro aplicado para: ${val}`, 'info');
+function filterEditaisValor(faixa) {
+    if (faixa === 'todos') {
+        autoLoadEditais();
+    } else if (faixa === '500k') {
+        autoLoadEditais(databaseEditais.filter(e => e.valorNumerico <= 500000));
+    } else if (faixa === '2m') {
+        autoLoadEditais(databaseEditais.filter(e => e.valorNumerico > 500000 && e.valorNumerico <= 2000000));
+    } else {
+        autoLoadEditais(databaseEditais.filter(e => e.valorNumerico > 2000000));
+    }
 }
 
 function filterEditaisKeyword(keyword) {
     const k = keyword.toLowerCase().trim();
-    const cards = document.querySelectorAll('.edital-card');
+    if (!k) {
+        autoLoadEditais();
+        return;
+    }
+    const filtered = databaseEditais.filter(e => 
+        e.titulo.toLowerCase().includes(k) || 
+        e.elegibilidade.toLowerCase().includes(k) ||
+        e.orgao.toLowerCase().includes(k)
+    );
+    autoLoadEditais(filtered);
+}
 
-    cards.forEach(c => {
-        const text = c.textContent.toLowerCase();
-        if (text.includes(k)) {
-            c.style.display = 'block';
-        } else {
-            c.style.display = 'none';
-        }
-    });
+/* --------------------------------------------------------------------------
+   4. Esteira de Emendas Parlamentares (Carregamento Automático com SIOP)
+   -------------------------------------------------------------------------- */
+const databaseEmendas = [
+    // Coluna 1: Indicação Cadastrada
+    {
+        id: 'em-1',
+        coluna: 1,
+        cidade: 'Castro (PR)',
+        tipoTag: 'EMENDA PIX',
+        tipoClasse: 'tag-pl',
+        tipoFiltro: 'pix',
+        siop: 'SIOP #2026-018',
+        valor: 'R$ 600.000,00',
+        valorNum: 600000,
+        desc: 'Custeio Geral Municipal. Aguardando aceite da conta corrente no Transferegov.',
+        resp: 'Dr. Renato',
+        prazo: '30/11'
+    },
+    {
+        id: 'em-2',
+        coluna: 1,
+        cidade: 'Reserva do Iguaçu',
+        tipoTag: 'AGRICULTURA',
+        tipoClasse: 'tag-req',
+        tipoFiltro: 'definida',
+        siop: 'MAPA #540026',
+        valor: 'R$ 350.000,00',
+        valorNum: 350000,
+        desc: 'Aquisição de Caminhão Pipa. Prefeitura elaborando termo de referência.',
+        resp: 'Carla Mendes',
+        prazo: '05/12'
+    },
+    {
+        id: 'em-3',
+        coluna: 1,
+        cidade: 'Irati',
+        tipoTag: 'BANCADA ESTADUAL',
+        tipoClasse: 'tag-indica',
+        tipoFiltro: 'bancada',
+        siop: 'SIOP #2026-092',
+        valor: 'R$ 1.500.000,00',
+        valorNum: 1500000,
+        desc: 'Pavimentação de Acesso ao Polo Universitário. Indicação confirmada em ata.',
+        resp: 'Dr. Renato',
+        prazo: '15/12'
+    },
+
+    // Coluna 2: Proposta Cadastrada pela Prefeitura
+    {
+        id: 'em-4',
+        coluna: 2,
+        cidade: 'Prudentópolis',
+        tipoTag: 'SAÚDE (FNS)',
+        tipoClasse: 'tag-indica',
+        tipoFiltro: 'definida',
+        siop: 'Prop. 89104',
+        valor: 'R$ 500.000,00',
+        valorNum: 500000,
+        desc: 'Reforma de 2 Postos de Saúde na Zona Rural. Proposta enviada ao Ministério.',
+        statusSub: 'Em análise no Ministério da Saúde',
+        resp: 'Carla Mendes'
+    },
+    {
+        id: 'em-5',
+        coluna: 2,
+        cidade: 'Palmeira',
+        tipoTag: 'INFRAESTRUTURA',
+        tipoClasse: 'tag-req',
+        tipoFiltro: 'definida',
+        siop: 'MCID #78410',
+        valor: 'R$ 1.200.000,00',
+        valorNum: 1200000,
+        desc: 'Pavimentação da Estrada de Santa Bárbara. Caixa analisando projeto técnico.',
+        statusSub: 'Análise de Engenharia Caixa',
+        resp: 'Dr. Renato'
+    },
+    {
+        id: 'em-6',
+        coluna: 2,
+        cidade: 'Campo Mourão',
+        tipoTag: 'EMENDA PIX',
+        tipoClasse: 'tag-pl',
+        tipoFiltro: 'pix',
+        siop: 'SIOP #2026-044',
+        valor: 'R$ 750.000,00',
+        valorNum: 750000,
+        desc: 'Custeio da Saúde e Atenção Básica. Plano de Ação em análise na STN.',
+        statusSub: 'Aguardando validação STN',
+        resp: 'Carla Mendes'
+    },
+
+    // Coluna 3: Diligência / Risco Crítico
+    {
+        id: 'em-7',
+        coluna: 3,
+        cidade: 'Guaratuba • Saúde (FNS)',
+        cidadeSimples: 'Guaratuba',
+        tipoTag: 'RISCO DE PERDA',
+        urgenciaBadge: 'VENCE EM 48H',
+        tipoFiltro: 'definida',
+        valor: 'R$ 850.000,00',
+        valorNum: 850000,
+        desc: '<strong>Parecer Negativo:</strong> Faltou planilha orçamentária assinada pelo engenheiro civil da prefeitura.',
+        isDanger: true,
+        motivoDiligencia: 'Falta planilha assinada pelo engenheiro',
+        prazoDiligencia: '48 horas'
+    },
+    {
+        id: 'em-8',
+        coluna: 3,
+        cidade: 'Piraí do Sul • Educação',
+        cidadeSimples: 'Piraí do Sul',
+        tipoTag: 'DILIGÊNCIA',
+        urgenciaBadge: 'VENCE EM 5 DIAS',
+        tipoFiltro: 'definida',
+        valor: 'R$ 400.000,00',
+        valorNum: 400000,
+        desc: 'Falta matrícula atualizada do terreno da creche no cartório de registro de imóveis.',
+        isDanger: true,
+        motivoDiligencia: 'Matrícula do terreno da creche',
+        prazoDiligencia: '5 dias'
+    },
+
+    // Coluna 4: Empenhada (Recurso Garantido)
+    {
+        id: 'em-9',
+        coluna: 4,
+        cidade: 'Candói (PR)',
+        tipoTag: 'MIN. ESPORTE',
+        tipoClasse: 'tag-pl',
+        tipoFiltro: 'definida',
+        siop: 'NE #2026NE0041',
+        valor: 'R$ 550.000,00',
+        valorNum: 550000,
+        desc: 'Construção de Complexo Esportivo de Grama Sintética. Aguardando Ordem Bancária.',
+        subBadge: 'NOTA EMPENHO OK'
+    },
+    {
+        id: 'em-10',
+        coluna: 4,
+        cidade: 'Francisco Beltrão',
+        tipoTag: 'SAÚDE (FNS)',
+        tipoClasse: 'tag-indica',
+        tipoFiltro: 'definida',
+        siop: 'NE #2026NE0118',
+        valor: 'R$ 1.000.000,00',
+        valorNum: 1000000,
+        desc: 'Equipamentos de Raio-X e Ultrassom para a UPA Central.',
+        subBadge: 'NOTA EMPENHO OK'
+    },
+
+    // Coluna 5: Paga na Conta (Vitória Concluída)
+    {
+        id: 'em-11',
+        coluna: 5,
+        cidade: 'Ponta Grossa',
+        cidadeSimples: 'Ponta Grossa',
+        tipoTag: 'PAGA ONTEM',
+        ob: 'OB 84920',
+        tipoFiltro: 'definida',
+        valor: 'R$ 1.500.000,00',
+        valorNum: 1500000,
+        desc: 'Asfalto no Bairro Nova Rússia. Dinheiro creditado na conta 12.480-X da Caixa.',
+        objeto: 'Asfalto Bairro Nova Rússia',
+        isSuccess: true
+    },
+    {
+        id: 'em-12',
+        coluna: 5,
+        cidade: 'Cascavel',
+        cidadeSimples: 'Cascavel',
+        tipoTag: 'PAGA ESTA SEMANA',
+        ob: 'OB 84112',
+        tipoFiltro: 'definida',
+        valor: 'R$ 800.000,00',
+        valorNum: 800000,
+        desc: 'Duas Ambulâncias Tipo SAMU. Prefeitura já autorizou pregão de compra.',
+        objeto: 'Ambulâncias SAMU',
+        isSuccess: true
+    }
+];
+
+function autoLoadEmendas(filteredList = null) {
+    const list = filteredList || databaseEmendas;
+
+    for (let col = 1; col <= 5; col++) {
+        const colListEl = document.getElementById(`kanbanCol${col}List`);
+        const badgeEl = document.getElementById(`badgeCol${col}`);
+        if (!colListEl) continue;
+
+        const colItems = list.filter(e => e.coluna === col);
+        if (badgeEl) badgeEl.textContent = colItems.length;
+
+        colListEl.innerHTML = colItems.map(item => {
+            if (item.isDanger) {
+                return `
+                    <div class="kanban-card danger-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="tag" style="background: #ef4444; color: white;">${item.tipoTag}</span>
+                            <span style="font-size: 11px; font-weight: 800; color: #b91c1c;">${item.urgenciaBadge}</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0; color: #991b1b;">${item.cidade}</h4>
+                        <div style="font-size: 14px; font-weight: 800; color: #7f1d1d;">${item.valor}</div>
+                        <p style="font-size: 12px; color: #7f1d1d; margin: 6px 0;">${item.desc}</p>
+                        <button class="btn btn-sm btn-white" style="width: 100%; border: 1px solid #f87171; color: #991b1b;" onclick="alertPrefeitoDiligencia('${item.cidadeSimples}', '${item.motivoDiligencia}', '${item.prazoDiligencia}')">
+                            <i class="fa-brands fa-whatsapp"></i> Cobrar Prefeito no WhatsApp
+                        </button>
+                    </div>
+                `;
+            } else if (item.isSuccess) {
+                return `
+                    <div class="kanban-card success-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-success">${item.tipoTag}</span>
+                            <span style="font-size: 11px; color: #166534; font-weight: 700;">${item.ob}</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0; color: #166534;">${item.cidade}</h4>
+                        <div style="font-size: 14px; font-weight: 800; color: #14532d;">${item.valor}</div>
+                        <p style="font-size: 12px; color: #166534;">${item.desc}</p>
+                        <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 8px;" onclick="generateVictoryCard('${item.cidadeSimples}', '${item.valor}', '${item.objeto}')">
+                            <i class="fa-solid fa-bullhorn"></i> Disparar Comunicação
+                        </button>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag ${item.tipoClasse}">${item.tipoTag}</span>
+                            <span style="font-size: 11px; color: ${item.subBadge ? 'var(--emerald); font-weight: 700;' : 'var(--text-muted)'};">${item.subBadge || item.siop}</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">${item.cidade}</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">${item.valor}</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">${item.desc}</p>
+                        ${item.statusSub ? `
+                            <div style="margin-top: 8px; font-size: 11px; color: var(--primary); font-weight: 600;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> ${item.statusSub}
+                            </div>
+                        ` : ''}
+                        ${item.resp ? `
+                            <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+                                <span>Resp: ${item.resp}</span>
+                                <span>Prazo: ${item.prazo || 'Ativo'}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        }).join('');
+    }
+
+    const badgeDiligencias = document.getElementById('badgeDiligencias');
+    if (badgeDiligencias) {
+        const perigoCount = list.filter(e => e.isDanger).length;
+        badgeDiligencias.textContent = perigoCount;
+    }
+}
+
+function syncEmendasGov() {
+    const btn = event.currentTarget;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Robô Consultando SIOP & Transferegov...';
+    btn.disabled = true;
+
+    const statusText = document.getElementById('emendasStatusText');
+    if (statusText) statusText.textContent = 'Conectando ao banco do Orçamento Geral da União (OGU 2026)...';
+
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Atualizar Status com SIOP';
+        btn.disabled = false;
+        if (statusText) statusText.textContent = 'Sincronizado automaticamente • R$ 37.8M monitorados no Orçamento Geral da União';
+        autoLoadEmendas();
+        showToast('Sincronização com SIOP e Transferegov concluída! Ordens bancárias e empenhos atualizados.', 'success');
+    }, 1200);
+}
+
+function filterEmendasCity(term) {
+    const t = term.toLowerCase().trim();
+    if (!t) {
+        autoLoadEmendas();
+        return;
+    }
+    const filtered = databaseEmendas.filter(e => 
+        e.cidade.toLowerCase().includes(t) || 
+        (e.cidadeSimples && e.cidadeSimples.toLowerCase().includes(t)) ||
+        e.desc.toLowerCase().includes(t)
+    );
+    autoLoadEmendas(filtered);
+}
+
+function filterEmendasType(tipo) {
+    if (tipo === 'todas') {
+        autoLoadEmendas();
+    } else {
+        const filtered = databaseEmendas.filter(e => e.tipoFiltro === tipo);
+        autoLoadEmendas(filtered);
+    }
 }
 
 function analyzeEditalWithAI() {

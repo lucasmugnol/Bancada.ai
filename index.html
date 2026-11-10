@@ -326,26 +326,40 @@
                     <div class="filter-group">
                         <label>Ministério / Órgão:</label>
                         <select class="input-select" id="filterOrgao" onchange="filterEditais()">
-                            <option value="todos">Todos os Ministérios (8)</option>
-                            <option value="MAPA">MAPA (Agricultura)</option>
+                            <option value="todos">Todos os Ministérios (8 Abertos)</option>
+                            <option value="MAPA">MAPA (Agricultura e Pecuária)</option>
                             <option value="MS">Ministério da Saúde (FNS)</option>
                             <option value="MEC">MEC / FNDE (Educação)</option>
                             <option value="MCID">Ministério das Cidades</option>
                             <option value="MESP">Ministério do Esporte</option>
+                            <option value="MDS">Ministério do Desenv. Social</option>
+                            <option value="MINC">Ministério da Cultura</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label>Faixa de Valor:</label>
-                        <select class="input-select">
-                            <option>Qualquer Valor</option>
-                            <option>Até R$ 500 mil</option>
-                            <option>R$ 500 mil a R$ 2 Milhões</option>
-                            <option>Acima de R$ 2 Milhões</option>
+                        <select class="input-select" id="filterValor" onchange="filterEditaisValor(this.value)">
+                            <option value="todos">Qualquer Valor</option>
+                            <option value="500k">Até R$ 500 mil</option>
+                            <option value="2m">R$ 500 mil a R$ 2 Milhões</option>
+                            <option value="plus">Acima de R$ 2 Milhões</option>
                         </select>
                     </div>
                     <div class="filter-group" style="flex: 1;">
                         <label>Buscar Objeto / Equipamento:</label>
-                        <input type="text" class="input-field" placeholder="Ex: Trator, Asfalto, Ambulância, Quadra..." onkeyup="filterEditaisKeyword(this.value)">
+                        <input type="text" class="input-field" placeholder="Ex: Trator, Asfalto, Ambulância, Ônibus..." onkeyup="filterEditaisKeyword(this.value)">
+                    </div>
+                </div>
+
+                <!-- Barra de Status do Robô Automático -->
+                <div id="radarSyncStatusBar" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 16px; border-radius: 8px; font-size: 12px; color: var(--navy-900);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="legend-dot green"></span>
+                        <strong style="color: var(--primary);"><i class="fa-solid fa-robot"></i> Robô Bancada.ai:</strong>
+                        <span id="radarStatusText">Monitorando Transferegov, FNS e Diário Oficial da União em tempo real</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; color: var(--text-muted);">Última varredura: <strong id="radarLastScanTime" style="color: var(--navy-900);">Hoje às 12:45</strong> • <span style="color: var(--emerald); font-weight: 700;">8 Editais Ativos</span></span>
                     </div>
                 </div>
             </div>
@@ -353,119 +367,10 @@
             <!-- Lista de Editais e Ferramenta de Match por IA -->
             <div class="grid-3">
 
-                <!-- Coluna da Esquerda: Feed de Editais Encontrados -->
-                <div style="grid-column: span 2; display: flex; flex-direction: column; gap: 16px;">
-
-                    <!-- Edital 1: MAPA -->
-                    <div class="edital-card highlight" id="edital-1">
-                        <div class="edital-header">
-                            <div>
-                                <span class="tag tag-pl">MAPA • AGRICULTURA</span>
-                                <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
-                                    Edital n.º 14/2026 – Aquisição de Patrulhas Mecanizadas e Caminhões Caçamba
-                                </h3>
-                                <div style="font-size: 12px; color: var(--text-muted);">
-                                    Publicado no DOU • Transferegov Programa n.º 5400020260014
-                                </div>
-                            </div>
-                            <div class="edital-badge-puro">
-                                <div class="edital-valor">Até R$ 650.000</div>
-                                <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: 28/11/2026 (Faltam 18 dias)</span>
-                            </div>
-                        </div>
-
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
-                            <strong>Elegibilidade:</strong> Municípios com população de até 50 mil habitantes com perfil de agricultura familiar. Permite compra de trator agrícola, grade e caçamba basculante.
-                        </p>
-
-                        <div class="edital-footer">
-                            <div class="ai-match-tag">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> 12 Cidades da sua base são elegíveis!
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('MAPA - Tratores e Caçambas', ['Laranjeiras do Sul', 'Pato Branco', 'Prudentópolis', 'Reserva do Iguaçu', 'Candói'])">
-                                    <i class="fa-solid fa-robot"></i> Ver Análise de Match
-                                </button>
-                                <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('Edital de Tratores do MAPA', 'R$ 650 mil', '28/11')">
-                                    <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Edital 2: FNS (Saúde) -->
-                    <div class="edital-card" id="edital-2">
-                        <div class="edital-header">
-                            <div>
-                                <span class="tag tag-indica">MINISTÉRIO DA SAÚDE • FNS</span>
-                                <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
-                                    Portaria n.º 2.410 – Renovação de Frota do Transporte Sanitário Eletivo (Vans Adaptadas)
-                                </h3>
-                                <div style="font-size: 12px; color: var(--text-muted);">
-                                    Fundo Nacional de Saúde • Habilitação Fundo a Fundo
-                                </div>
-                            </div>
-                            <div class="edital-badge-puro">
-                                <div class="edital-valor">R$ 380.000 / Van</div>
-                                <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: 22/11/2026 (Faltam 12 dias)</span>
-                            </div>
-                        </div>
-
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
-                            <strong>Elegibilidade:</strong> Municípios que necessitam transportar pacientes para tratamento de hemodiálise e oncologia em cidades polo regionais.
-                        </p>
-
-                        <div class="edital-footer">
-                            <div class="ai-match-tag">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> 8 Cidades com demanda aberta no gabinete!
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('FNS - Vans Sanitárias', ['Guaratuba', 'Piraí do Sul', 'Irati', 'Palmeira'])">
-                                    <i class="fa-solid fa-robot"></i> Ver Análise de Match
-                                </button>
-                                <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('Edital de Vans Sanitárias FNS', 'R$ 380 mil', '22/11')">
-                                    <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Edital 3: Ministério das Cidades -->
-                    <div class="edital-card" id="edital-3">
-                        <div class="edital-header">
-                            <div>
-                                <span class="tag tag-req">MINISTÉRIO DAS CIDADES</span>
-                                <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
-                                    Chamada Pública n.º 07/2026 – Pavimentação e Iluminação de Vias de Acesso Rural
-                                </h3>
-                                <div style="font-size: 12px; color: var(--text-muted);">
-                                    Secretaria Nacional de Periferias e Mobilidade
-                                </div>
-                            </div>
-                            <div class="edital-badge-puro">
-                                <div class="edital-valor">Até R$ 2.000.000</div>
-                                <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: 05/12/2026 (Faltam 25 dias)</span>
-                            </div>
-                        </div>
-
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
-                            <strong>Elegibilidade:</strong> Cidades com projetos de engenharia prontos para asfalto ou calçamento poliédrico e lâmpadas de LED.
-                        </p>
-
-                        <div class="edital-footer">
-                            <div class="ai-match-tag">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> 5 Cidades com projetos já validados
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('Min. Cidades - Pavimentação', ['Cascavel', 'Ponta Grossa', 'Castro'])">
-                                    <i class="fa-solid fa-robot"></i> Ver Análise de Match
-                                </button>
-                                <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('Edital de Asfalto Min. Cidades', 'R$ 2 Milhões', '05/12')">
-                                    <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Coluna da Esquerda: Feed de Editais Carregados Automaticamente -->
+                <div id="liveEditaisFeedContainer" style="grid-column: span 2; display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Renderizado dinamicamente pelo Robô Bancada.ai -->
+                </div>
 
                 </div>
 
@@ -541,13 +446,13 @@
                 </div>
 
                 <!-- Filtros da Esteira -->
-                <div class="filters-bar" style="margin-bottom: 0;">
+                <div class="filters-bar" style="margin-bottom: 14px;">
                     <div class="filter-group">
                         <label>Tipo de Emenda:</label>
-                        <select class="input-select" onchange="filterEmendasType(this.value)">
-                            <option value="todas">Todas (Individuais, Bancada, Comissão)</option>
+                        <select class="input-select" id="filterEmendaTipoSelect" onchange="filterEmendasType(this.value)">
+                            <option value="todas">Todas as Emendas (43 Monitoradas)</option>
                             <option value="pix">Transferência Especial (Emenda Pix)</option>
-                            <option value="definida">Finalidade Definida (Convênio)</option>
+                            <option value="definida">Finalidade Definida (Convênios)</option>
                             <option value="bancada">Emenda de Bancada Estadual</option>
                         </select>
                     </div>
@@ -564,6 +469,18 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Barra de Status do Robô de Emendas -->
+                <div id="emendasSyncStatusBar" style="display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 16px; border-radius: 8px; font-size: 12px; color: #065f46;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="legend-dot green"></span>
+                        <strong style="color: #059669;"><i class="fa-solid fa-cloud-arrow-down"></i> Robô SIOP/Transferegov:</strong>
+                        <span id="emendasStatusText">Sincronizado automaticamente • R$ 37.8M monitorados no Orçamento Geral da União</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; color: #047857;">Status: <strong id="emendasLastSyncTime">Hoje às 12:45</strong> • <strong style="color: #15803d;">28 Pagas na Conta</strong></span>
+                    </div>
+                </div>
             </div>
 
             <!-- KANBAN DA ESTEIRA DE EMENDAS -->
@@ -573,31 +490,10 @@
                 <div class="kanban-col">
                     <div class="kanban-col-header">
                         <span>1. INDICAÇÃO CADASTRADA</span>
-                        <span class="tag" style="background: #e2e8f0; color: #475569;">3</span>
+                        <span class="tag" style="background: #e2e8f0; color: #475569;" id="badgeCol1">3</span>
                     </div>
-
-                    <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-pl">EMENDA PIX</span>
-                            <span style="font-size: 11px; color: var(--text-muted);">SIOP: #2026-018</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0;">Castro (PR)</h4>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 600.000,00</div>
-                        <p style="font-size: 12px; color: var(--text-muted);">Custeio Geral Municipal. Aguardando aceite da conta corrente no Transferegov.</p>
-                        <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
-                            <span>Resp: Dr. Renato</span>
-                            <span>Prazo: 30/11</span>
-                        </div>
-                    </div>
-
-                    <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-req">AGRICULTURA</span>
-                            <span style="font-size: 11px; color: var(--text-muted);">MAPA</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0;">Reserva do Iguaçu</h4>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 350.000,00</div>
-                        <p style="font-size: 12px; color: var(--text-muted);">Aquisição de Caminhão Pipa. Prefeitura elaborando termo de referência.</p>
+                    <div id="kanbanCol1List" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dinâmico -->
                     </div>
                 </div>
 
@@ -605,30 +501,10 @@
                 <div class="kanban-col">
                     <div class="kanban-col-header">
                         <span>2. PROPOSTA CADASTRADA</span>
-                        <span class="tag" style="background: #e0e7ff; color: #3730a3;">4</span>
+                        <span class="tag" style="background: #e0e7ff; color: #3730a3;" id="badgeCol2">4</span>
                     </div>
-
-                    <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-indica">SAÚDE (FNS)</span>
-                            <span style="font-size: 11px; color: var(--text-muted);">Prop: 89104</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0;">Prudentópolis</h4>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 500.000,00</div>
-                        <p style="font-size: 12px; color: var(--text-muted);">Reforma de 2 Postos de Saúde na Zona Rural. Proposta enviada ao Ministério.</p>
-                        <div style="margin-top: 8px; font-size: 11px; color: var(--primary); font-weight: 600;">
-                            <i class="fa-solid fa-spinner fa-spin"></i> Em análise no Ministério
-                        </div>
-                    </div>
-
-                    <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-req">INFRAESTRUTURA</span>
-                            <span style="font-size: 11px; color: var(--text-muted);">MCID</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0;">Palmeira</h4>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 1.200.000,00</div>
-                        <p style="font-size: 12px; color: var(--text-muted);">Pavimentação da Estrada de Santa Bárbara. Caixa analisando projeto técnico.</p>
+                    <div id="kanbanCol2List" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dinâmico -->
                     </div>
                 </div>
 
@@ -636,38 +512,10 @@
                 <div class="kanban-col" style="border-top: 3px solid var(--danger);">
                     <div class="kanban-col-header" style="background: #fee2e2;">
                         <span style="color: var(--danger);">3. DILIGÊNCIA / ALERTA</span>
-                        <span class="tag" style="background: var(--danger); color: white;">2 URGENTES</span>
+                        <span class="tag" style="background: var(--danger); color: white;" id="badgeCol3">2 URGENTES</span>
                     </div>
-
-                    <!-- CARD COM RISCO CRÍTICO -->
-                    <div class="kanban-card danger-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="tag" style="background: #ef4444; color: white;">RISCO DE PERDA</span>
-                            <span style="font-size: 11px; font-weight: 800; color: #b91c1c;">VENCE EM 48H</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0; color: #991b1b;">Guaratuba • Saúde (FNS)</h4>
-                        <div style="font-size: 14px; font-weight: 800; color: #7f1d1d;">R$ 850.000,00</div>
-                        <p style="font-size: 12px; color: #7f1d1d; margin: 6px 0;">
-                            <strong>Parecer Negativo:</strong> Faltou planilha orçamentária assinada pelo engenheiro civil da prefeitura.
-                        </p>
-                        <button class="btn btn-sm btn-white" style="width: 100%; border: 1px solid #f87171; color: #991b1b;" onclick="alertPrefeitoDiligencia('Guaratuba', 'Falta planilha do engenheiro', '48 horas')">
-                            <i class="fa-brands fa-whatsapp"></i> Cobrar Prefeito no WhatsApp
-                        </button>
-                    </div>
-
-                    <div class="kanban-card danger-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="tag" style="background: #f59e0b; color: white;">DILIGÊNCIA</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #b45309;">VENCE EM 5 DIAS</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0; color: #92400e;">Piraí do Sul • Educação</h4>
-                        <div style="font-size: 14px; font-weight: 800; color: #78350f;">R$ 400.000,00</div>
-                        <p style="font-size: 12px; color: #92400e; margin: 6px 0;">
-                            Falta matrícula atualizada do terreno da creche no cartório de registro de imóveis.
-                        </p>
-                        <button class="btn btn-sm btn-white" style="width: 100%; border: 1px solid #fbbf24; color: #92400e;" onclick="alertPrefeitoDiligencia('Piraí do Sul', 'Matrícula do terreno da creche', '5 dias')">
-                            <i class="fa-brands fa-whatsapp"></i> Cobrar Secretário de Obras
-                        </button>
+                    <div id="kanbanCol3List" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dinâmico -->
                     </div>
                 </div>
 
@@ -675,27 +523,10 @@
                 <div class="kanban-col">
                     <div class="kanban-col-header">
                         <span>4. EMPENHADA (RECURSO GARANTIDO)</span>
-                        <span class="tag" style="background: #fef3c7; color: #92400e;">6</span>
+                        <span class="tag" style="background: #fef3c7; color: #92400e;" id="badgeCol4">6</span>
                     </div>
-
-                    <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-pl">MIN. ESPORTE</span>
-                            <span style="font-size: 11px; color: var(--emerald); font-weight: 700;">NOTA EMPENHO OK</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0;">Candói (PR)</h4>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 550.000,00</div>
-                        <p style="font-size: 12px; color: var(--text-muted);">Construção de Complexo Esportivo de Grama Sintética. Aguardando Ordem Bancária.</p>
-                    </div>
-
-                    <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-indica">SAÚDE</span>
-                            <span style="font-size: 11px; color: var(--emerald); font-weight: 700;">NOTA EMPENHO OK</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0;">Francisco Beltrão</h4>
-                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 1.000.000,00</div>
-                        <p style="font-size: 12px; color: var(--text-muted);">Equipamentos de Raio-X e Ultrassom para a UPA Central.</p>
+                    <div id="kanbanCol4List" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dinâmico -->
                     </div>
                 </div>
 
@@ -703,30 +534,10 @@
                 <div class="kanban-col" style="border-top: 3px solid var(--emerald);">
                     <div class="kanban-col-header" style="background: #dcfce7;">
                         <span style="color: #166534;">5. PAGA NA CONTA (LIBERADA)</span>
-                        <span class="tag" style="background: #166534; color: white;">28 PAGAS</span>
+                        <span class="tag" style="background: #166534; color: white;" id="badgeCol5">28 PAGAS</span>
                     </div>
-
-                    <div class="kanban-card success-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-success">PAGA ONTEM</span>
-                            <span style="font-size: 11px; color: #166534; font-weight: 700;">OB 84920</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0; color: #166534;">Ponta Grossa</h4>
-                        <div style="font-size: 14px; font-weight: 800; color: #14532d;">R$ 1.500.000,00</div>
-                        <p style="font-size: 12px; color: #166534;">Asfalto no Bairro Nova Rússia. Dinheiro creditado na conta 12.480-X da Caixa.</p>
-                        <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 8px;" onclick="generateVictoryCard('Ponta Grossa', 'R$ 1.500.000,00', 'Asfalto Bairro Nova Rússia')">
-                            <i class="fa-solid fa-bullhorn"></i> Disparar Comunicação
-                        </button>
-                    </div>
-
-                    <div class="kanban-card success-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="tag tag-success">PAGA ESTA SEMANA</span>
-                            <span style="font-size: 11px; color: #166534; font-weight: 700;">OB 84112</span>
-                        </div>
-                        <h4 style="font-size: 14px; margin: 8px 0; color: #166534;">Cascavel</h4>
-                        <div style="font-size: 14px; font-weight: 800; color: #14532d;">R$ 800.000,00</div>
-                        <p style="font-size: 12px; color: #166534;">Duas Ambulâncias Tipo SAMU. Prefeitura já autorizou pregão de compra.</p>
+                    <div id="kanbanCol5List" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dinâmico -->
                     </div>
                 </div>
 
