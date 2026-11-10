@@ -69,7 +69,10 @@ function switchView(targetView) {
     document.getElementById('avatarInitials').textContent = info.initials;
 
     if (targetView === 'mapa') {
-        setTimeout(initOrResizeMap, 150);
+        setTimeout(initOrResizeMap, 100);
+        setTimeout(() => {
+            if (mapInstance) mapInstance.invalidateSize();
+        }, 350);
     }
     if (targetView === 'editais') {
         autoLoadEditais();
@@ -1966,11 +1969,29 @@ function initOrResizeMap() {
             scrollWheelZoom: true
         });
 
-        // Tiles limpos e modernos do CartoDB Positron
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CartoDB',
+        // Provedor de Mapa Livre (Sem marcas d'água e sem restrição de API Key)
+        // ESRI World Street Map: excelente nitidez para cidades e rodovias brasileiras
+        const streetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; Esri &mdash; Fontes: Esri, USGS, OpenStreetMap',
             maxZoom: 18
         }).addTo(mapInstance);
+
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19
+        });
+
+        const grayLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; Esri &mdash; Base Executiva',
+            maxZoom: 16
+        });
+
+        // Seletor de Camadas no canto superior direito
+        L.control.layers({
+            "Mapa Político / Estradas (Esri)": streetLayer,
+            "OpenStreetMap (Padrão)": osmLayer,
+            "Estilo Executivo (Cinza)": grayLayer
+        }, null, { position: 'topright' }).addTo(mapInstance);
 
         markersGroup = L.layerGroup().addTo(mapInstance);
         renderMapMarkers('todos', 'todos');
@@ -1978,7 +1999,9 @@ function initOrResizeMap() {
         // Seleciona Ponta Grossa por padrão
         selectCityOnMap(geoMunicipalities[0]);
     } else {
-        mapInstance.invalidateSize();
+        setTimeout(() => {
+            mapInstance.invalidateSize();
+        }, 150);
     }
 }
 
