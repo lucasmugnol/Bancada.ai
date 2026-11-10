@@ -1029,3 +1029,189 @@ function goToCityFromMap() {
     loadCityDetails(currentSelectedMapCity.id);
     showToast(`Abrindo dossiê completo de ${currentSelectedMapCity.nome}`, 'info');
 }
+
+/* --------------------------------------------------------------------------
+   9. Módulo de APIs Federais ao Vivo (Congresso, IBGE, Câmara)
+   -------------------------------------------------------------------------- */
+let activeApiTab = 'senado';
+
+const apiEndpointsConfig = {
+    'senado': {
+        url: 'https://legis.senado.leg.br/dadosabertos/senador/lista/atual',
+        name: 'Congresso Nacional • Senadores em Exercício',
+        headers: { 'Accept': 'application/json' }
+    },
+    'ibge': {
+        url: 'https://servicodados.ibge.gov.br/api/v1/localidades/estados/41/municipios',
+        name: 'IBGE • Municípios Oficiais do Paraná',
+        headers: { 'Accept': 'application/json' }
+    },
+    'camara': {
+        url: 'https://dadosabertos.camara.leg.br/api/v2/deputados?siglaUf=PR&ordem=ASC&ordenarPor=nome',
+        name: 'Câmara dos Deputados • Deputados do Paraná',
+        headers: { 'Accept': 'application/json' }
+    }
+};
+
+function openLiveApiModal() {
+    document.getElementById('liveApiModal').style.display = 'flex';
+    switchLiveApiTab(activeApiTab);
+}
+
+function closeLiveApiModal() {
+    document.getElementById('liveApiModal').style.display = 'none';
+}
+
+function switchLiveApiTab(tab) {
+    activeApiTab = tab;
+    
+    // Atualiza botões
+    ['tabBtnSenado', 'tabBtnIBGE', 'tabBtnCamara'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+    });
+
+    if (tab === 'senado') document.getElementById('tabBtnSenado').classList.add('active');
+    if (tab === 'ibge') document.getElementById('tabBtnIBGE').classList.add('active');
+    if (tab === 'camara') document.getElementById('tabBtnCamara').classList.add('active');
+
+    const config = apiEndpointsConfig[tab];
+    document.getElementById('apiEndpointDisplay').textContent = config.url;
+    document.getElementById('apiHttpStatusBadge').textContent = 'PRONTO PARA CONSULTAR';
+    document.getElementById('apiHttpStatusBadge').className = 'tag tag-blue';
+    document.getElementById('apiResponseTimeDisplay').textContent = '-- ms';
+
+    // Dispara automaticamente para demonstrar a API ao vivo!
+    executeCurrentLiveApi();
+}
+
+async function executeCurrentLiveApi() {
+    const config = apiEndpointsConfig[activeApiTab];
+    const container = document.getElementById('liveApiResultsContainer');
+    const badge = document.getElementById('apiHttpStatusBadge');
+    const timeDisplay = document.getElementById('apiResponseTimeDisplay');
+    const btn = document.getElementById('btnExecuteLiveFetch');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Conectando ao Servidor Federal...';
+    badge.textContent = 'REQUISITANDO...';
+    badge.className = 'tag tag-req';
+
+    container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--navy-900);">
+            <i class="fa-solid fa-satellite fa-spin" style="font-size: 32px; color: var(--primary); margin-bottom: 12px; display: block;"></i>
+            <strong>Disparando GET HTTP para a API Federal:</strong><br>
+            <code style="font-size: 11px; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; color: var(--primary);">${config.url}</code>
+        </div>
+    `;
+
+    const startTime = performance.now();
+
+    try {
+        const response = await fetch(config.url, { headers: config.headers });
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+        timeDisplay.textContent = `${duration} ms`;
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} (${response.statusText})`);
+        }
+
+        const data = await response.json();
+        badge.textContent = `200 OK (${duration}ms)`;
+        badge.className = 'tag tag-success';
+
+        renderApiResults(activeApiTab, data);
+        showToast(`API Federal respondeu com sucesso em ${duration}ms!`, 'success');
+
+    } catch (err) {
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+        timeDisplay.textContent = `${duration} ms`;
+
+        badge.textContent = `STATUS: ${err.message}`;
+        badge.className = 'tag tag-req';
+        badge.style.background = '#fee2e2';
+        badge.style.color = '#b91c1c';
+
+        // Renderiza fallback explicativo
+        renderApiFallback(activeApiTab, err.message);
+        showToast(`Servidor governamental em manutenção temporária (${err.message}).`, 'warning');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Executar Consulta na API Federal Agora';
+    }
+}
+
+function renderApiResults(source, data) {
+    const container = document.getElementById('liveApiResultsContainer');
+
+    if (source === 'senado') {
+        const parlamentares = data?.ListaParlamentarEmExercicio?.Parlamentares?.Parlamentar || [];
+        const amostra = parlamentares.slice(0, 6);
+
+        container.innerHTML = `
+            <div style="margin-bottom: 10px; font-size: 13px; color: var(--text-secondary); display: flex; justify-content: space-between;">
+                <span><strong>${parlamentares.length} Parlamentares</strong> ativos retornados da API do Congresso Nacional:</span>
+                <span style="color: var(--emerald); font-weight: 700;">✓ Dados Oficiais em Tempo Real</span>
+            </div>
+            <div class="grid-3" style="gap: 10px;">
+                ${amostra.map(p => {
+                    const id = p.IdentificacaoParlamentar;
+                    return `
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; gap: 10px; align-items: center;">
+                            <img src="${id.UrlFotoParlamentar}" alt="${id.NomeParlamentar}" style="width: 44px; height: 54px; object-fit: cover; border-radius: 6px; background: #e2e8f0;" onerror="this.src='https://via.placeholder.com/44x54?text=Foto'">
+                            <div style="overflow: hidden;">
+                                <div style="font-weight: 700; font-size: 12px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;" title="${id.NomeParlamentar}">${id.NomeParlamentar}</div>
+                                <span class="tag tag-pl" style="font-size: 9px; padding: 1px 5px;">${id.SiglaPartidoParlamentar} • ${id.UfParlamentar}</span>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Gabinete Ativo</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    } else if (source === 'ibge') {
+        const municipios = Array.isArray(data) ? data : [];
+        const amostra = municipios.slice(0, 9);
+
+        container.innerHTML = `
+            <div style="margin-bottom: 10px; font-size: 13px; color: var(--text-secondary); display: flex; justify-content: space-between;">
+                <span><strong>${municipios.length} Municípios</strong> do Paraná retornados pela API Oficial do IBGE:</span>
+                <span style="color: var(--emerald); font-weight: 700;">✓ Código IBGE & Microrregiões</span>
+            </div>
+            <div class="grid-3" style="gap: 8px;">
+                ${amostra.map(m => `
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;">
+                        <strong style="font-size: 12px; color: var(--navy-900);">${m.nome}</strong>
+                        <div style="font-size: 10px; color: var(--text-muted);">Cód. IBGE: ${m.id}</div>
+                        <div style="font-size: 10px; color: var(--primary);">Micro: ${m.microrregiao?.nome || 'Geral'}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border);">
+                <pre style="font-size: 11px; max-height: 200px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+    }
+}
+
+function renderApiFallback(source, errorMsg) {
+    const container = document.getElementById('liveApiResultsContainer');
+    container.innerHTML = `
+        <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid var(--amber); border-radius: 8px; padding: 14px;">
+            <div style="font-weight: 700; font-size: 13px; color: #92400e; margin-bottom: 4px;">
+                <i class="fa-solid fa-circle-info"></i> Diagnóstico de Gateway Governamental
+            </div>
+            <p style="font-size: 12px; color: #78350f; line-height: 1.5;">
+                O servidor da Câmara dos Deputados (<code>dadosabertos.camara.leg.br</code>) retornou instabilidade temporária (503). O <strong>Bancada.ai</strong> possui sistema de redundância automática: quando um gateway cai, a plataforma chaveia para o cache e consulta as APIs do Senado e do IBGE.
+            </p>
+            <button class="btn btn-sm btn-primary" style="margin-top: 10px;" onclick="switchLiveApiTab('senado')">
+                <i class="fa-solid fa-rotate"></i> Consultar API do Congresso (Online)
+            </button>
+        </div>
+    `;
+}

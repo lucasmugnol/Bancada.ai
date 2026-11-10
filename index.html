@@ -85,7 +85,12 @@
                 <div class="alert-banner-content">
                     <strong>ATENÇÃO GABINETE:</strong> O Fundo Nacional de Saúde (FNS) abriu diligência na Proposta n.º 84729/2026 de <strong>Guaratuba</strong>. Prazo para a prefeitura responder expira em <strong>48 horas</strong> para não perder R$ 850.000,00.
                 </div>
-                <button class="btn btn-sm btn-white" onclick="switchView('emendas')">Ver Emenda</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm btn-white" onclick="switchView('emendas')">Ver Emenda</button>
+                    <button class="btn btn-sm btn-primary" onclick="openLiveApiModal()" style="background: var(--navy-900); border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="fa-solid fa-satellite-dish"></i> Testar APIs Federais ao Vivo
+                    </button>
+                </div>
             </div>
 
             <!-- Métricas Principais -->
@@ -1297,6 +1302,69 @@
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeNewEmendaModal()">Cancelar</button>
                 <button class="btn btn-primary" onclick="saveNewEmenda()"><i class="fa-solid fa-save"></i> Salvar na Esteira</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE TESTE DE APIS FEDERAIS AO VIVO -->
+    <div id="liveApiModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i>
+                        Central de Conexão com APIs Federais (Ao Vivo)
+                    </h3>
+                    <span style="font-size: 11px; color: var(--text-muted);">Consultas em tempo real direto dos servidores do Governo e Congresso Nacional</span>
+                </div>
+                <button class="btn-close" onclick="closeLiveApiModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="overflow-y: auto; flex: 1;">
+                <!-- Abas da API -->
+                <div class="tabs-nav" style="margin-bottom: 14px;">
+                    <button class="tab-btn active" id="tabBtnSenado" onclick="switchLiveApiTab('senado')">
+                        <i class="fa-solid fa-landmark"></i> Parlamentares (Congresso)
+                    </button>
+                    <button class="tab-btn" id="tabBtnIBGE" onclick="switchLiveApiTab('ibge')">
+                        <i class="fa-solid fa-map"></i> Municípios Oficiais (IBGE)
+                    </button>
+                    <button class="tab-btn" id="tabBtnCamara" onclick="switchLiveApiTab('camara')">
+                        <i class="fa-solid fa-building-columns"></i> Câmara dos Deputados
+                    </button>
+                </div>
+
+                <!-- Painel de Status da Conexão -->
+                <div style="background: #0f172a; color: white; padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 12px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span><strong style="color: #38bdf8;">ENDPOINT:</strong> <span id="apiEndpointDisplay">https://legis.senado.leg.br/dadosabertos/senador/lista/atual</span></span>
+                        <span id="apiHttpStatusBadge" class="tag tag-success" style="font-size: 10px;">AGUARDANDO CONSULTA</span>
+                    </div>
+                    <div style="margin-top: 6px; font-size: 11px; color: #94a3b8; display: flex; gap: 16px;">
+                        <span>Tempo de Resposta: <strong id="apiResponseTimeDisplay" style="color: #4ade80;">-- ms</strong></span>
+                        <span>Formato: <strong style="color: #facc15;">JSON (REST)</strong></span>
+                        <span>CORS: <strong style="color: #4ade80;">Liberado (*)</strong></span>
+                    </div>
+                </div>
+
+                <!-- Botão de Disparo da API -->
+                <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                    <button class="btn btn-primary" id="btnExecuteLiveFetch" onclick="executeCurrentLiveApi()" style="flex: 1;">
+                        <i class="fa-solid fa-bolt"></i> Executar Consulta na API Federal Agora
+                    </button>
+                </div>
+
+                <!-- Container dos Resultados Reais -->
+                <div id="liveApiResultsContainer" style="min-height: 180px;">
+                    <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+                        <i class="fa-solid fa-cloud-arrow-down" style="font-size: 32px; color: var(--border-hover); margin-bottom: 10px; display: block;"></i>
+                        Clique no botão acima para conectar com o servidor federal e receber os dados reais em JSON.
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeLiveApiModal()">Fechar</button>
             </div>
         </div>
     </div>
