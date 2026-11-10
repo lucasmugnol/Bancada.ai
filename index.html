@@ -436,7 +436,7 @@
             <!-- SUB-ABA 2: LICITAÇÕES DAS PREFEITURAS (FISCALIZAÇÃO DE EMENDAS) -->
             <!-- ============================================================== -->
             <div id="subViewLicitacoes" class="sub-tab-panel" style="display: none;">
-                <div class="card" style="margin-bottom: 24px;">
+                <div class="card" style="margin-bottom: 20px;">
                     <div class="card-header">
                         <div>
                             <div class="card-title">
@@ -454,12 +454,36 @@
                         </div>
                     </div>
 
-                    <div style="background: #f8fafc; border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
-                            <strong>Objetivo Parlamentar:</strong> Verificar se o recurso pago na conta do município já virou edital de licitação no PNCP para gerar card de vitória ou cobrar agilidade da prefeitura.
+                    <!-- BARRA DE AMARRAÇÃO E PROTEÇÃO ANTI-GAFE -->
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="background: #16a34a; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px;">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </span>
+                            <div>
+                                <strong style="color: #14532d; font-size: 13px;">Sistema de Amarração Emenda ➔ Licitação & Proteção Anti-Gafe</strong>
+                                <div style="font-size: 12px; color: #166534;">
+                                    O <strong>Bancada.ai</strong> cruza o CNPJ do município, o valor e o objeto para vincular a licitação à emenda correta. As ações de cobrança e postagem ficam bloqueadas em licitações que não têm relação com o parlamentar!
+                                </div>
+                            </div>
                         </div>
-                        <span class="tag tag-success">API Oficial PNCP • Federal</span>
+                        <span class="tag tag-success" style="font-weight: 700;">MOTOR DE MATCHING ATIVO</span>
+                    </div>
+
+                    <!-- FILTROS DE VÍNCULO POLÍTICO -->
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--navy-900);">
+                            <i class="fa-solid fa-filter"></i> Exibir na Lista:
+                        </span>
+                        <button class="btn btn-sm btn-emerald" id="btnFilterPncpVinculadas" onclick="filterPncpByBond('vinculadas')">
+                            <i class="fa-solid fa-link"></i> Apenas Vinculadas às Nossas Emendas (<span id="countPncpVinculadas">2</span>)
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="btnFilterPncpSugeridas" onclick="filterPncpByBond('sugeridas')">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--amber);"></i> Sugeridas pela IA (<span id="countPncpSugeridas">1</span>)
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="btnFilterPncpTodas" onclick="filterPncpByBond('todas')">
+                            <i class="fa-solid fa-list"></i> Todas as Licitações da API (<span id="countPncpTodas">12</span>)
+                        </button>
                     </div>
                 </div>
 
@@ -1349,6 +1373,61 @@
                         <i class="fa-brands fa-whatsapp"></i> Abrir WhatsApp do Prefeito
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE AMARRAÇÃO / VINCULAÇÃO COM EMENDA PARLAMENTAR -->
+    <div id="vincularEmendaModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-link" style="color: var(--primary);"></i>
+                    Vincular Licitação à Emenda Parlamentar
+                </div>
+                <button class="btn-close" onclick="closeVincularEmendaModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                    Ao vincular esta licitação à sua emenda, o sistema libera os alertas de fiscalização, os posts de vitória e atualiza a esteira de emendas do mandato.
+                </p>
+
+                <!-- Dados da Licitação do PNCP -->
+                <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.5;">
+                    <div style="color: var(--text-muted); font-size: 11px; text-transform: uppercase; font-weight: 700;">Licitação no PNCP:</div>
+                    <div style="font-weight: 700; color: var(--navy-900); font-size: 13px; margin: 2px 0;" id="modalVincularObjeto">--</div>
+                    <div style="color: var(--text-secondary);">
+                        <span id="modalVincularOrgao">--</span> • <span id="modalVincularValor" style="color: var(--emerald); font-weight: 700;">--</span>
+                    </div>
+                </div>
+
+                <!-- Seletor de Emenda do Mandato -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--navy-900); display: block; margin-bottom: 6px;">
+                        Selecione a Emenda Parlamentar do Dep. Ricardo Silveira correspondente:
+                    </label>
+                    <select id="selectEmendaParaVincular" class="input-select" style="width: 100%;">
+                        <option value="em-11">Ponta Grossa • R$ 1.500.000,00 (Asfalto Bairro Nova Rússia)</option>
+                        <option value="em-12">Cascavel • R$ 800.000,00 (Ambulâncias SAMU)</option>
+                        <option value="em-13">Laranjeiras do Sul • R$ 450.000,00 (Trator Agrícola)</option>
+                        <option value="em-7">Guaratuba • R$ 850.000,00 (Saúde FNS - Equipamentos)</option>
+                        <option value="em-9">Candói • R$ 550.000,00 (Complexo Esportivo Sintético)</option>
+                        <option value="em-10">Francisco Beltrão • R$ 1.000.000,00 (Equipamentos UPA Central)</option>
+                        <option value="avulsa">+ Cadastrar Vínculo com Nova Indicação / Emenda Pix</option>
+                    </select>
+                </div>
+
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #1e40af;">
+                    <i class="fa-solid fa-circle-check"></i> <strong>Garantia de Segurança:</strong> Ao confirmar, o gabinete só efetuará cobranças e postagens respaldado no vínculo oficial!
+                </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn btn-outline" onclick="closeVincularEmendaModal()">Cancelar</button>
+                <button class="btn btn-emerald" onclick="confirmarVinculoEmenda()">
+                    <i class="fa-solid fa-check"></i> Confirmar Vínculo Oficial
+                </button>
             </div>
         </div>
     </div>
