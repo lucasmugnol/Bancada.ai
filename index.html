@@ -299,125 +299,174 @@
         </section>
 
         <!-- ================================================================== -->
-        <!-- MÓDULO 2: RADAR DE EDITAIS & CHAMADAS PÚBLICAS (TRANSFEREGOV/FNS)   -->
+        <!-- MÓDULO 2: RADAR DE EDITAIS & LICITAÇÕES DAS BASES                   -->
         <!-- ================================================================== -->
         <section id="view-editais" class="view-panel">
             
-            <div class="card" style="margin-bottom: 24px;">
-                <div class="card-header">
-                    <div>
-                        <div class="card-title">
-                            <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i>
-                            Radar Inteligente de Editais e Programas Federais
+            <!-- SUB-NAVEGAÇÃO: OPORTUNIDADES FEDERAIS vs FISCALIZAÇÃO DE LICITAÇÕES -->
+            <div class="tabs-nav" style="margin-bottom: 20px; background: white; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); display: flex; gap: 8px;">
+                <button class="tab-btn active" id="tabNavOportunidades" onclick="switchRadarSubTab('oportunidades')">
+                    <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i>
+                    <strong>1. Oportunidades Federais (Ministérios ➔ Prefeituras)</strong>
+                    <span class="badge-counter" style="background: var(--primary);">8 Programas Abertos</span>
+                </button>
+                <button class="tab-btn" id="tabNavLicitacoes" onclick="switchRadarSubTab('licitacoes')">
+                    <i class="fa-solid fa-building-shield" style="color: var(--emerald);"></i>
+                    <strong>2. Licitações das Prefeituras (Fiscalização das Emendas)</strong>
+                    <span class="badge-counter" style="background: var(--emerald);">Ao Vivo PNCP</span>
+                </button>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- SUB-ABA 1: OPORTUNIDADES FEDERAIS (MINISTÉRIOS ➔ PREFEITURAS)   -->
+            <!-- ============================================================== -->
+            <div id="subViewOportunidades" class="sub-tab-panel active">
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">
+                                <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i>
+                                Radar de Oportunidades Federais (Transferegov / Ministérios)
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                <strong>Aqui o parlamentar é o articulador:</strong> encontre verbas e equipamentos abertos em Brasília e avise o prefeito para cadastrar a proposta da cidade antes que o prazo expire!
+                            </p>
                         </div>
-                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                            Monitoramento contínuo do Transferegov, FNS, FNDE, MAPA, Cidades e Diário Oficial da União. Chega de caçar em dezenas de sites!
-                        </p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="simulateSyncEditais()">
+                                <i class="fa-solid fa-rotate"></i> Sincronizar Transferegov
+                            </button>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-emerald" id="btnLivePncp" onclick="fetchLivePncpEditais()">
-                            <i class="fa-solid fa-satellite-dish"></i> Puxar Editais Oficiais ao Vivo (PNCP)
-                        </button>
-                        <button class="btn btn-primary" onclick="simulateSyncEditais()">
-                            <i class="fa-solid fa-rotate"></i> Sincronizar Programas
-                        </button>
+
+                    <!-- Filtros do Radar -->
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <label>Ministério / Órgão:</label>
+                            <select class="input-select" id="filterOrgao" onchange="filterEditais()">
+                                <option value="todos">Todos os Ministérios (8 Abertos)</option>
+                                <option value="MAPA">MAPA (Agricultura e Pecuária)</option>
+                                <option value="MS">Ministério da Saúde (FNS)</option>
+                                <option value="MEC">MEC / FNDE (Educação)</option>
+                                <option value="MCID">Ministério das Cidades</option>
+                                <option value="MESP">Ministério do Esporte</option>
+                                <option value="MDS">Ministério do Desenv. Social</option>
+                                <option value="MINC">Ministério da Cultura</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Faixa de Valor:</label>
+                            <select class="input-select" id="filterValor" onchange="filterEditaisValor(this.value)">
+                                <option value="todos">Qualquer Valor</option>
+                                <option value="500k">Até R$ 500 mil</option>
+                                <option value="2m">R$ 500 mil a R$ 2 Milhões</option>
+                                <option value="plus">Acima de R$ 2 Milhões</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" style="flex: 1;">
+                            <label>Buscar Objeto / Equipamento:</label>
+                            <input type="text" class="input-field" placeholder="Ex: Trator, Asfalto, Ambulância, Ônibus..." onkeyup="filterEditaisKeyword(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Barra de Status do Robô Automático -->
+                    <div id="radarSyncStatusBar" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 16px; border-radius: 8px; font-size: 12px; color: var(--navy-900);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="legend-dot green"></span>
+                            <strong style="color: var(--primary);"><i class="fa-solid fa-robot"></i> Robô Bancada.ai:</strong>
+                            <span id="radarStatusText">Monitorando Transferegov, FNS e Diário Oficial da União em tempo real</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 11px; color: var(--text-muted);">Última varredura: <strong id="radarLastScanTime" style="color: var(--navy-900);">Hoje às 12:45</strong> • <span style="color: var(--emerald); font-weight: 700;">8 Programas Ativos</span></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Filtros do Radar -->
-                <div class="filters-bar">
-                    <div class="filter-group">
-                        <label>Ministério / Órgão:</label>
-                        <select class="input-select" id="filterOrgao" onchange="filterEditais()">
-                            <option value="todos">Todos os Ministérios (8 Abertos)</option>
-                            <option value="MAPA">MAPA (Agricultura e Pecuária)</option>
-                            <option value="MS">Ministério da Saúde (FNS)</option>
-                            <option value="MEC">MEC / FNDE (Educação)</option>
-                            <option value="MCID">Ministério das Cidades</option>
-                            <option value="MESP">Ministério do Esporte</option>
-                            <option value="MDS">Ministério do Desenv. Social</option>
-                            <option value="MINC">Ministério da Cultura</option>
-                        </select>
+                <!-- Grid de Editais de Brasília e IA Match -->
+                <div class="grid-3">
+                    <!-- Coluna da Esquerda: Feed de Editais Carregados Automaticamente -->
+                    <div id="liveEditaisFeedContainer" style="grid-column: span 2; display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Renderizado dinamicamente pelo Robô Bancada.ai -->
                     </div>
-                    <div class="filter-group">
-                        <label>Faixa de Valor:</label>
-                        <select class="input-select" id="filterValor" onchange="filterEditaisValor(this.value)">
-                            <option value="todos">Qualquer Valor</option>
-                            <option value="500k">Até R$ 500 mil</option>
-                            <option value="2m">R$ 500 mil a R$ 2 Milhões</option>
-                            <option value="plus">Acima de R$ 2 Milhões</option>
-                        </select>
-                    </div>
-                    <div class="filter-group" style="flex: 1;">
-                        <label>Buscar Objeto / Equipamento:</label>
-                        <input type="text" class="input-field" placeholder="Ex: Trator, Asfalto, Ambulância, Ônibus..." onkeyup="filterEditaisKeyword(this.value)">
-                    </div>
-                </div>
 
-                <!-- Barra de Status do Robô Automático -->
-                <div id="radarSyncStatusBar" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 16px; border-radius: 8px; font-size: 12px; color: var(--navy-900);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="legend-dot green"></span>
-                        <strong style="color: var(--primary);"><i class="fa-solid fa-robot"></i> Robô Bancada.ai:</strong>
-                        <span id="radarStatusText">Monitorando Transferegov, FNS e Diário Oficial da União em tempo real</span>
-                    </div>
+                    <!-- Coluna da Direita: Assistente de IA de Editais -->
                     <div>
-                        <span style="font-size: 11px; color: var(--text-muted);">Última varredura: <strong id="radarLastScanTime" style="color: var(--navy-900);">Hoje às 12:45</strong> • <span style="color: var(--emerald); font-weight: 700;">8 Editais Ativos</span></span>
+                        <div class="card" style="background: linear-gradient(145deg, #0f172a, #1e293b); color: white; border: none;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                                <div style="background: var(--primary); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 16px; color: white;">IA Analisadora de Editais</h3>
+                                    <span style="font-size: 11px; color: #94a3b8;">Lê 100 páginas em 5 segundos</span>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 13px; color: #cbd5e1; margin-bottom: 14px;">
+                                Tem um edital em PDF que o prefeito ou assessor enviou? Cole o link ou texto e a IA extrai requisitos, impedimentos e faz o resumo executivo:
+                            </p>
+
+                            <textarea id="aiEditalInput" class="prompt-textarea" style="background: rgba(255,255,255,0.06); color: white; border-color: rgba(255,255,255,0.15); height: 110px;" placeholder="Cole o texto ou número da chamada pública..."></textarea>
+
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="analyzeEditalWithAI()">
+                                <i class="fa-solid fa-brain"></i> Analisar & Encontrar Cidades Aptas
+                            </button>
+
+                            <div id="aiEditalOutput" style="display: none; margin-top: 16px; background: rgba(255,255,255,0.05); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); font-size: 12px; line-height: 1.6;">
+                                <strong style="color: var(--emerald); display: block; margin-bottom: 4px;">✓ RESUMO GERADO PELA IA:</strong>
+                                <p id="aiResumoTexto">Objeto: Construção de Creches (FNDE). Teto: R$ 3.2M. Requisito: Terreno plano de 2.000m² quitado. Cidades da base com terreno pronto: <strong>Piraí do Sul e Candói</strong>.</p>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 16px;">
+                            <div class="card-title" style="font-size: 14px; margin-bottom: 10px;">
+                                <i class="fa-solid fa-bell" style="color: var(--amber);"></i> Notificações do Radar
+                            </div>
+                            <ul style="font-size: 12px; color: var(--text-secondary); line-height: 1.8; padding-left: 18px;">
+                                <li><strong>Ontem às 18h:</strong> Ministério do Esporte abriu edital de Areninhas Sintéticas.</li>
+                                <li><strong>09/11:</strong> FNS prorrogou prazo de proposta de Guaratuba por 48h.</li>
+                                <li><strong>08/11:</strong> Novo lote de emendas Pix liberado na STN.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Lista de Editais e Ferramenta de Match por IA -->
-            <div class="grid-3">
-
-                <!-- Coluna da Esquerda: Feed de Editais Carregados Automaticamente -->
-                <div id="liveEditaisFeedContainer" style="grid-column: span 2; display: flex; flex-direction: column; gap: 16px;">
-                    <!-- Renderizado dinamicamente pelo Robô Bancada.ai -->
-                </div>
-
-                </div>
-
-                <!-- Coluna da Direita: Assistente de IA de Editais -->
-                <div>
-                    <div class="card" style="background: linear-gradient(145deg, #0f172a, #1e293b); color: white; border: none;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                            <div style="background: var(--primary); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <!-- ============================================================== -->
+            <!-- SUB-ABA 2: LICITAÇÕES DAS PREFEITURAS (FISCALIZAÇÃO DE EMENDAS) -->
+            <!-- ============================================================== -->
+            <div id="subViewLicitacoes" class="sub-tab-panel" style="display: none;">
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">
+                                <i class="fa-solid fa-building-shield" style="color: var(--emerald);"></i>
+                                Rastreador de Licitações das Prefeituras da Base (PNCP / Lei 14.133)
                             </div>
-                            <div>
-                                <h3 style="font-size: 16px; color: white;">IA Analisadora de Editais</h3>
-                                <span style="font-size: 11px; color: #94a3b8;">Lê 100 páginas em 5 segundos</span>
-                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                <strong>Aqui o parlamentar fiscaliza e cobra:</strong> acompanhe em tempo real se os municípios aliados já publicaram o edital de licitação para gastar o dinheiro das suas emendas ou se a obra está travada na prefeitura!
+                            </p>
                         </div>
-
-                        <p style="font-size: 13px; color: #cbd5e1; margin-bottom: 14px;">
-                            Tem um edital em PDF que o prefeito ou assessor enviou? Cole o link ou texto e a IA extrai requisitos, impedimentos e faz o resumo executivo:
-                        </p>
-
-                        <textarea id="aiEditalInput" class="prompt-textarea" style="background: rgba(255,255,255,0.06); color: white; border-color: rgba(255,255,255,0.15); height: 110px;" placeholder="Cole o texto ou número da chamada pública..."></textarea>
-
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="analyzeEditalWithAI()">
-                            <i class="fa-solid fa-brain"></i> Analisar & Encontrar Cidades Aptas
-                        </button>
-
-                        <div id="aiEditalOutput" style="display: none; margin-top: 16px; background: rgba(255,255,255,0.05); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); font-size: 12px; line-height: 1.6;">
-                            <strong style="color: var(--emerald); display: block; margin-bottom: 4px;">✓ RESUMO GERADO PELA IA:</strong>
-                            <p id="aiResumoTexto">Objeto: Construção de Creches (FNDE). Teto: R$ 3.2M. Requisito: Terreno plano de 2.000m² quitado. Cidades da base com terreno pronto: <strong>Piraí do Sul e Candói</strong>.</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-emerald" id="btnLivePncp" onclick="fetchLivePncpEditais()">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Consultar Licitações no PNCP (Ao Vivo)
+                            </button>
                         </div>
                     </div>
 
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-title" style="font-size: 14px; margin-bottom: 10px;">
-                            <i class="fa-solid fa-bell" style="color: var(--amber);"></i> Notificações do Radar
+                    <div style="background: #f8fafc; border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+                            <strong>Objetivo Parlamentar:</strong> Verificar se o recurso pago na conta do município já virou edital de licitação no PNCP para gerar card de vitória ou cobrar agilidade da prefeitura.
                         </div>
-                        <ul style="font-size: 12px; color: var(--text-secondary); line-height: 1.8; padding-left: 18px;">
-                            <li><strong>Ontem às 18h:</strong> Ministério do Esporte abriu edital de Areninhas Sintéticas.</li>
-                            <li><strong>09/11:</strong> FNS prorrogou prazo de proposta de Guaratuba por 48h.</li>
-                            <li><strong>08/11:</strong> Novo lote de emendas Pix liberado na STN.</li>
-                        </ul>
+                        <span class="tag tag-success">API Oficial PNCP • Federal</span>
                     </div>
                 </div>
 
+                <!-- Container das Licitações das Prefeituras -->
+                <div id="pncpLicitacoesFeedContainer" style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Preenchido pelo Robô do PNCP com dados das licitações e botões de fiscalização/marketing -->
+                </div>
             </div>
 
         </section>
@@ -1179,6 +1228,127 @@
 
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeLiveApiModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CARD DE VITÓRIA / REDES SOCIAIS -->
+    <div id="victoryCardModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box" style="max-width: 620px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-bullhorn" style="color: var(--emerald);"></i>
+                    Card de Vitória para Redes Sociais
+                </div>
+                <button class="btn-close" onclick="closeVictoryCardModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                    A licitação foi publicada no PNCP! O recurso da sua emenda está virando realidade. Use o card e a legenda oficial para prestar contas à população:
+                </p>
+
+                <!-- Prévia Visual do Card (Formato Redes Sociais) -->
+                <div id="socialCardPreview" style="background: linear-gradient(135deg, #091e3a 0%, #1e3a8a 50%, #0f172a 100%); color: white; border-radius: 14px; padding: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.25);">
+                    <div style="position: absolute; right: -20px; top: -20px; opacity: 0.08; font-size: 160px;">
+                        <i class="fa-solid fa-landmark"></i>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-circle-check"></i> Obra Licitada no PNCP
+                            </span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 700; color: #93c5fd; letter-spacing: 0.5px;">
+                            DEP. RICARDO SILVEIRA
+                        </span>
+                    </div>
+
+                    <h3 style="font-size: 22px; font-weight: 800; line-height: 1.25; margin-bottom: 8px; color: #ffffff;">
+                        🚨 VITÓRIA PARA <span id="cardPreviewCidade" style="color: #facc15;">PONTA GROSSA</span>!
+                    </h3>
+
+                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; color: #e2e8f0;">
+                        <strong style="color: #67e8f9; display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Objeto Contratado pela Prefeitura:</strong>
+                        <span id="cardPreviewObjeto">Pavimentação asfáltica e recapeamento de vias urbanas...</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 14px;">
+                        <div>
+                            <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Investimento Federal / Emenda</span>
+                            <div id="cardPreviewValor" style="font-size: 24px; font-weight: 800; color: #34d399;">R$ 1.500.000,00</div>
+                        </div>
+                        <div style="text-align: right; font-size: 11px; color: #cbd5e1;">
+                            <i class="fa-solid fa-shield-halved" style="color: #38bdf8;"></i> Mandato em Ação<br>
+                            <strong>Bancada.ai</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legenda do Post Formatada -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--navy-900); display: block; margin-bottom: 6px;">
+                        <i class="fa-brands fa-instagram" style="color: #e1306c;"></i> Legenda Sugerida para Instagram, Facebook e WhatsApp:
+                    </label>
+                    <textarea id="cardPostLegenda" class="input-field" style="height: 110px; font-size: 12px; line-height: 1.5;" readonly></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn btn-outline" onclick="closeVictoryCardModal()">Fechar</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" onclick="copyCardLegenda()">
+                        <i class="fa-solid fa-copy"></i> Copiar Legenda
+                    </button>
+                    <button class="btn btn-emerald" onclick="shareCardDirectWhatsApp()">
+                        <i class="fa-brands fa-whatsapp"></i> Postar / Enviar no WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE COBRANÇA DE AGILIDADE DA PREFEITURA -->
+    <div id="cobrarPrefeitoModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box" style="max-width: 580px;">
+            <div class="modal-header">
+                <div class="modal-title" style="color: #b91c1c;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Cobrança Institucional de Celeridade
+                </div>
+                <button class="btn-close" onclick="closeCobrarPrefeitoModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; padding: 12px 14px; border-radius: 8px; font-size: 12px; color: #991b1b; line-height: 1.5;">
+                    <strong>Acompanhamento de Execução:</strong> A prefeitura publicou o edital no PNCP. Para garantir que a licitação não seja suspensa, impugnada ou demore para assinar o contrato, envie este comunicado direto ao gabinete do Prefeito.
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--navy-900); display: block; margin-bottom: 4px;">
+                        Município: <span id="cobrarDestinatarioCidade" style="color: var(--primary);">Ponta Grossa (PR)</span>
+                    </label>
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--navy-900); display: block; margin-bottom: 6px;">
+                        <i class="fa-brands fa-whatsapp" style="color: #25d366;"></i> Mensagem Oficial do Dep. Ricardo Silveira ao Prefeito:
+                    </label>
+                    <textarea id="cobrarMensagemTexto" class="input-field" style="height: 130px; font-size: 12px; line-height: 1.5;"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn btn-outline" onclick="closeCobrarPrefeitoModal()">Cancelar</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" onclick="copiarMensagemCobranca()">
+                        <i class="fa-solid fa-copy"></i> Copiar Texto
+                    </button>
+                    <button class="btn btn-emerald" onclick="enviarWhatsAppCobranca()">
+                        <i class="fa-brands fa-whatsapp"></i> Abrir WhatsApp do Prefeito
+                    </button>
+                </div>
             </div>
         </div>
     </div>

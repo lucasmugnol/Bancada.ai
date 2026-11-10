@@ -752,6 +752,20 @@ body {
     border-bottom-color: var(--primary);
 }
 
+#tabNavOportunidades.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    background: rgba(2, 132, 199, 0.05);
+    border-radius: 8px 8px 0 0;
+}
+
+#tabNavLicitacoes.active {
+    color: var(--emerald);
+    border-bottom: 2px solid var(--emerald);
+    background: rgba(16, 185, 129, 0.05);
+    border-radius: 8px 8px 0 0;
+}
+
 .tab-content {
     display: none;
 }

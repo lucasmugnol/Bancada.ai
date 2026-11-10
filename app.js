@@ -411,29 +411,50 @@ function filterEditaisKeyword(keyword) {
 }
 
 /* --------------------------------------------------------------------------
-   3.1 Robô Coletor: Consulta Oficial ao Vivo na API do PNCP (Lei 14.133/2021)
+   3.1 Sub-Abas do Radar: Oportunidades Federais vs Licitações das Prefeituras
+   -------------------------------------------------------------------------- */
+function switchRadarSubTab(subTab) {
+    const btnOportunidades = document.getElementById('tabNavOportunidades');
+    const btnLicitacoes = document.getElementById('tabNavLicitacoes');
+    const panelOportunidades = document.getElementById('subViewOportunidades');
+    const panelLicitacoes = document.getElementById('subViewLicitacoes');
+
+    if (subTab === 'oportunidades') {
+        if (btnOportunidades) btnOportunidades.classList.add('active');
+        if (btnLicitacoes) btnLicitacoes.classList.remove('active');
+        if (panelOportunidades) panelOportunidades.style.display = 'block';
+        if (panelLicitacoes) panelLicitacoes.style.display = 'none';
+        autoLoadEditais();
+        showToast('Exibindo Oportunidades Federais (Ministérios ➔ Prefeituras)', 'info');
+    } else {
+        if (btnLicitacoes) btnLicitacoes.classList.add('active');
+        if (btnOportunidades) btnOportunidades.classList.remove('active');
+        if (panelLicitacoes) panelLicitacoes.style.display = 'block';
+        if (panelOportunidades) panelOportunidades.style.display = 'none';
+        fetchLivePncpEditais();
+        showToast('Exibindo Licitações das Prefeituras (Fiscalização das Emendas)', 'info');
+    }
+}
+
+/* --------------------------------------------------------------------------
+   3.2 Robô Coletor: Licitações das Prefeituras no PNCP (Fiscalização da Emenda)
    -------------------------------------------------------------------------- */
 async function fetchLivePncpEditais() {
     const btn = document.getElementById('btnLivePncp');
-    const container = document.getElementById('liveEditaisFeedContainer');
-    const statusText = document.getElementById('radarStatusText');
-    const badgeEditais = document.getElementById('badgeEditais');
+    const container = document.getElementById('pncpLicitacoesFeedContainer');
+    if (!container) return;
 
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Conectando à API Federal do PNCP...';
-    }
-
-    if (statusText) {
-        statusText.innerHTML = '<span style="color: var(--primary); font-weight: 700;">📡 Robô Coletor conectando ao endpoint oficial: pncp.gov.br/api/consulta/v1...</span>';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando PNCP...';
     }
 
     container.innerHTML = `
         <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 30px; text-align: center;">
-            <i class="fa-solid fa-cloud-arrow-down fa-spin" style="font-size: 36px; color: var(--emerald); margin-bottom: 12px;"></i>
-            <h4 style="font-size: 16px; color: var(--navy-900); margin-bottom: 6px;">Consultando o Portal Nacional de Contratações Públicas (PNCP)</h4>
+            <i class="fa-solid fa-building-shield fa-spin" style="font-size: 36px; color: var(--emerald); margin-bottom: 12px;"></i>
+            <h4 style="font-size: 16px; color: var(--navy-900); margin-bottom: 6px;">Rastreando Editais das Prefeituras no PNCP</h4>
             <p style="font-size: 12px; color: var(--text-muted); max-width: 500px; margin: 0 auto;">
-                Consumindo endpoint público oficial da Presidência da República / MGI (Lei Federal 14.133/2021). Aguarde o retorno do payload em JSON...
+                Buscando licitações oficiais abertas pelas prefeituras para verificar se as obras das emendas do deputado já foram licitadas...
             </p>
         </div>
     `;
@@ -455,60 +476,55 @@ async function fetchLivePncpEditais() {
         const json = await response.json();
         const listaContratacoes = json.data || [];
 
-        if (statusText) {
-            statusText.innerHTML = `✓ <strong>Conexão PNCP Concluída em ${duration}ms!</strong> ${json.totalRegistros || listaContratacoes.length} Editais e Contratações Públicas Oficiais encontradas no banco federal.`;
-        }
-
-        if (badgeEditais) badgeEditais.textContent = listaContratacoes.length;
-
-        // Renderiza os editais 100% REAIS da API do governo
+        // Renderiza com o foco correto: FISCALIZAÇÃO DA OBRA E MARKETING POLÍTICO
         container.innerHTML = `
             <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 12px; color: #065f46; font-weight: 700;">
-                    <i class="fa-solid fa-circle-check"></i> DADOS OFICIAIS RETORNADOS DA API NACIONAL DO GOVERNO FEDERAL (PNCP / MGI)
+                    <i class="fa-solid fa-circle-check"></i> LICITAÇÕES OFICIAIS RETORNADAS DA API NACIONAL (LEI 14.133 / PNCP) • FISCALIZAÇÃO ATIVA DO MANDATO
                 </span>
                 <span class="tag tag-success" style="font-size: 10px;">LATÊNCIA: ${duration} MS</span>
             </div>
         ` + listaContratacoes.map(item => {
-            const orgao = item.orgaoEntidade?.razaoSocial || 'Órgão Federal';
+            const orgao = item.orgaoEntidade?.razaoSocial || 'Prefeitura Municipal';
             const cidade = item.unidadeOrgao?.municipioNome || 'Município';
-            const uf = item.unidadeOrgao?.ufSigla || 'BR';
+            const uf = item.unidadeOrgao?.ufSigla || 'PR';
             const valor = item.valorTotalEstimado 
                 ? 'R$ ' + item.valorTotalEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                : 'Valor Sob Demanda';
-            const objeto = item.objetoCompra || 'Objeto da contratação pública';
-            const numeroPNCP = item.numeroControlePNCP || 'PNCP Oficial';
+                : 'Valor Homologado';
+            const objeto = item.objetoCompra || 'Licitação Municipal';
+            const numeroPNCP = item.numeroControlePNCP || 'Processo PNCP';
             const dataPub = item.dataPublicacaoPncp ? item.dataPublicacaoPncp.split('T')[0] : 'Recente';
 
             return `
-                <div class="edital-card highlight">
+                <div class="edital-card highlight" style="border-left-color: var(--emerald);">
                     <div class="edital-header">
                         <div>
-                            <span class="tag tag-success"><i class="fa-solid fa-stamp"></i> EDITAL OFICIAL PNCP • LEI 14.133</span>
+                            <span class="tag tag-success"><i class="fa-solid fa-building-shield"></i> LICITAÇÃO MUNICIPAL ABERTA</span>
                             <span class="tag tag-pl">${cidade} (${uf})</span>
                             <h3 style="font-size: 15px; margin: 8px 0; color: var(--navy-900); line-height: 1.4;">
                                 ${objeto}
                             </h3>
                             <div style="font-size: 11px; color: var(--text-muted);">
-                                <strong>Órgão:</strong> ${orgao} • <strong>Nº PNCP:</strong> ${numeroPNCP}
+                                <strong>Órgão Contratante:</strong> ${orgao} • <strong>Nº PNCP:</strong> ${numeroPNCP}
                             </div>
                         </div>
                         <div class="edital-badge-puro">
-                            <div class="edital-valor">${valor}</div>
-                            <span class="edital-prazo" style="color: #047857;"><i class="fa-solid fa-calendar-check"></i> Publicado: ${dataPub}</span>
+                            <div class="edital-valor" style="color: #059669;">${valor}</div>
+                            <span class="edital-prazo" style="color: #047857;"><i class="fa-solid fa-calendar-check"></i> Publicado no PNCP: ${dataPub}</span>
                         </div>
                     </div>
 
-                    <div class="edital-footer">
+                    <div class="edital-footer" style="background: #f8fafc; margin: 12px -20px -20px -20px; padding: 12px 20px; border-radius: 0 0 12px 12px;">
                         <div class="ai-match-tag">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> Oportunidade para articulação com o município de ${cidade} (${uf})
+                            <i class="fa-solid fa-eye" style="color: var(--primary);"></i> 
+                            <strong>Fiscalização do Mandato:</strong> Obra em fase de contratação pela prefeitura.
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-sm btn-outline" onclick="showToast('Abrindo processo oficial nº ${numeroPNCP}', 'info')">
-                                <i class="fa-solid fa-file-contract"></i> Ver Detalhes PNCP
+                            <button class="btn btn-sm btn-emerald" onclick="generateVictoryCard('${cidade}', '${valor}', '${objeto.substring(0, 30)}...')">
+                                <i class="fa-solid fa-bullhorn"></i> Gerar Post: Obra Licitada
                             </button>
-                            <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('${objeto.substring(0, 40)}...', '${valor}', '${cidade}')">
-                                <i class="fa-brands fa-whatsapp"></i> Avisar Prefeito de ${cidade}
+                            <button class="btn btn-sm btn-outline" style="color: #b91c1c; border-color: #fca5a5;" onclick="cobrarPrefeitoAgilidade('${cidade}', '${objeto.substring(0, 30)}...')">
+                                <i class="fa-brands fa-whatsapp"></i> Cobrar Agilidade da Prefeitura
                             </button>
                         </div>
                     </div>
@@ -516,18 +532,18 @@ async function fetchLivePncpEditais() {
             `;
         }).join('');
 
-        showToast(`${listaContratacoes.length} Editais e Contratações Oficiais carregados ao vivo do PNCP!`, 'success');
+        showToast(`${listaContratacoes.length} Licitações Municipais carregadas para fiscalização do mandato!`, 'success');
 
     } catch (err) {
-        if (statusText) {
-            statusText.innerHTML = `<span style="color: #b91c1c; font-weight: 700;">Erro ao consultar PNCP: ${err.message}. Chaveando para modo de redundância.</span>`;
-        }
-        showToast(`Erro na requisição PNCP: ${err.message}`, 'error');
-        autoLoadEditais();
+        container.innerHTML = `
+            <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid var(--amber); border-radius: 8px; padding: 16px;">
+                <strong>Erro ao consultar PNCP:</strong> ${err.message}. Clique novamente para tentar.
+            </div>
+        `;
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Puxar Editais Oficiais ao Vivo (PNCP)';
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Consultar Licitações no PNCP (Ao Vivo)';
         }
     }
 }
@@ -908,8 +924,96 @@ function alertPrefeitoDiligencia(cidade, motivo, prazo) {
     showToast(`Mensagem de cobrança urgente gerada e copiada para ${cidade}!`, 'warning');
 }
 
+let currentVictoryCardData = {};
+
 function generateVictoryCard(cidade, valor, objeto) {
-    showToast(`Arte e texto de prestação de contas de ${cidade} (${valor}) gerados para as redes sociais!`, 'success');
+    currentVictoryCardData = { cidade, valor, objeto };
+    
+    const modal = document.getElementById('victoryCardModal');
+    if (!modal) {
+        showToast(`Arte e texto de prestação de contas de ${cidade} (${valor}) gerados para as redes sociais!`, 'success');
+        return;
+    }
+
+    const previewCidade = document.getElementById('cardPreviewCidade');
+    const previewObjeto = document.getElementById('cardPreviewObjeto');
+    const previewValor = document.getElementById('cardPreviewValor');
+    const legendaText = document.getElementById('cardPostLegenda');
+
+    if (previewCidade) previewCidade.textContent = cidade.toUpperCase();
+    if (previewObjeto) previewObjeto.textContent = objeto;
+    if (previewValor) previewValor.textContent = valor;
+
+    const legenda = `🚨 BOA NOTÍCIA PARA ${cidade.toUpperCase()}! OBRA LICITADA NO PNCP! 🏛️\n\nGraças ao nosso trabalho em Brasília e à destinação de emenda parlamentar no valor de ${valor}, a prefeitura acaba de publicar no Portal Nacional de Contratações Públicas o edital de licitação para:\n\n👉 "${objeto}"\n\nNosso mandato não para de trabalhar por você. O dinheiro já foi garantido e agora a obra entra na fase prática de contratação!\n\n#MandatoEmAção #DeputadoRicardoSilveira #${cidade.replace(/[^a-zA-Z0-9]/g, '')} #Transparência #BancadaAI`;
+
+    if (legendaText) legendaText.value = legenda;
+
+    modal.style.display = 'flex';
+}
+
+function closeVictoryCardModal() {
+    const modal = document.getElementById('victoryCardModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function copyCardLegenda() {
+    const text = document.getElementById('cardPostLegenda');
+    if (text) {
+        navigator.clipboard.writeText(text.value).catch(() => {});
+        showToast('Legenda oficial copiada com sucesso! Pronta para colar no Instagram/Facebook/WhatsApp.', 'success');
+    }
+}
+
+function shareCardDirectWhatsApp() {
+    const text = document.getElementById('cardPostLegenda');
+    const encoded = encodeURIComponent(text ? text.value : '');
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    showToast('Abrindo WhatsApp com o texto do post formatado!', 'info');
+}
+
+let currentCobrancaData = {};
+
+function cobrarPrefeitoAgilidade(cidade, objeto) {
+    currentCobrancaData = { cidade, objeto };
+    
+    const modal = document.getElementById('cobrarPrefeitoModal');
+    if (!modal) {
+        const msg = `Prefeito de ${cidade}, aqui é da assessoria do Dep. Ricardo Silveira.\n\nEstamos acompanhando no PNCP o andamento da licitação para "${objeto}". O Deputado pede prioridade da equipe técnica para agilizar a homologação e o início das obras para a comunidade!`;
+        navigator.clipboard.writeText(msg).catch(() => {});
+        showToast(`Mensagem de cobrança copiada para ${cidade}!`, 'warning');
+        return;
+    }
+
+    const cidadeEl = document.getElementById('cobrarDestinatarioCidade');
+    const msgEl = document.getElementById('cobrarMensagemTexto');
+
+    if (cidadeEl) cidadeEl.textContent = cidade;
+
+    const msg = `Prefeito(a) de ${cidade}, tudo bem? Aqui é da assessoria direta do Deputado Federal Ricardo Silveira em Brasília.\n\nAcompanhamos hoje no Portal Nacional de Contratações Públicas (PNCP) a publicação da licitação referente a: "${objeto}".\n\nComo viabilizamos esse recurso com muito empenho para o município, o Deputado nos solicitou contato direto com seu gabinete para pedir a máxima celeridade da equipe de licitações na homologação e assinatura da ordem de serviço, garantindo a entrega rápida para a nossa população.\n\nContem com nosso total apoio em Brasília! Um forte abraço.`;
+
+    if (msgEl) msgEl.value = msg;
+
+    modal.style.display = 'flex';
+}
+
+function closeCobrarPrefeitoModal() {
+    const modal = document.getElementById('cobrarPrefeitoModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function copiarMensagemCobranca() {
+    const text = document.getElementById('cobrarMensagemTexto');
+    if (text) {
+        navigator.clipboard.writeText(text.value).catch(() => {});
+        showToast('Mensagem de cobrança institucional copiada com sucesso!', 'success');
+    }
+}
+
+function enviarWhatsAppCobranca() {
+    const text = document.getElementById('cobrarMensagemTexto');
+    const encoded = encodeURIComponent(text ? text.value : '');
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    showToast('Abrindo WhatsApp para envio ao Prefeito...', 'info');
 }
 
 function showNewEmendaModal() {
