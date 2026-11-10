@@ -56,8 +56,9 @@
                 <span class="badge-counter" style="background: #10b981;">65 Cidades</span>
             </button>
             <button class="nav-btn" data-view="campo">
-                <i class="fa-solid fa-mobile-screen"></i>
-                <span>App Liderança / Campo</span>
+                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                <span>Ciclo de Demandas & Campo</span>
+                <span class="badge-counter" style="background: #0284c7;" id="badgeDemandasTop">5</span>
             </button>
         </nav>
 
@@ -808,20 +809,101 @@
         </section>
 
         <!-- ================================================================== -->
-        <!-- MÓDULO 5: APP MOBILE DA PONTA (LIDERANÇA & CABO ELEITORAL)          -->
+        <!-- MÓDULO 5: CICLO POLÍTICO DE DEMANDAS (PONTA ➔ GABINETE ➔ VOTO)      -->
         <!-- ================================================================== -->
         <section id="view-campo" class="view-panel">
             
-            <div style="max-width: 900px; margin: 0 auto;">
-                <div class="card" style="margin-bottom: 24px; text-align: center; background: linear-gradient(135deg, #0284c7, #0369a1); color: white;">
-                    <h2 style="font-size: 24px; margin-bottom: 6px;">Aplicativo da Ponta • Assessores de Campo e Lideranças</h2>
-                    <p style="font-size: 14px; color: #e0f2fe; max-width: 650px; margin: 0 auto;">
-                        Interface compacta otimizada para o celular do cabo eleitoral registrar pedidos da comunidade e receber materiais oficiais de prestação de contas.
-                    </p>
+            <!-- HEADER EXPLICATIVO DO CICLO -->
+            <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; border: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                Engenharia Política 360°
+                            </span>
+                            <span style="font-size: 12px; color: #94a3b8;">Do pedido na rua até a entrega em Brasília</span>
+                        </div>
+                        <h2 style="font-size: 22px; font-weight: 800; color: white;">Ciclo de Demandas & Campo: Da Ponta até o Voto</h2>
+                        <p style="font-size: 13px; color: #cbd5e1; max-width: 780px; margin-top: 4px; line-height: 1.5;">
+                            Organização hierárquica do mandato: a liderança capta o pedido no bairro, a assessoria municipal e regional faz a triagem técnica, Brasília transforma em emenda e o sistema fecha o ciclo disparando a vitória de volta para quem pediu!
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-emerald" onclick="switchDemandasSubTab('mesa')">
+                            <i class="fa-solid fa-list-check"></i> Abrir Mesa de Triagem (<span id="badgeDemandasTriagem">5</span>)
+                        </button>
+                    </div>
                 </div>
 
+                <!-- STEPPER INTERATIVO DO CICLO (5 ETAPAS) -->
+                <div class="cycle-stepper">
+                    <div class="cycle-step-item active" id="step1" onclick="highlightCycleStep(1)">
+                        <div class="cycle-step-num">1</div>
+                        <div>
+                            <div class="cycle-step-title">1. Ponta (Liderança)</div>
+                            <div class="cycle-step-actor">Cabo Eleitoral / Bairro</div>
+                        </div>
+                    </div>
+                    <div class="cycle-step-item" id="step2" onclick="highlightCycleStep(2)">
+                        <div class="cycle-step-num">2</div>
+                        <div>
+                            <div class="cycle-step-title">2. Triagem Local</div>
+                            <div class="cycle-step-actor">Assessor Municipal</div>
+                        </div>
+                    </div>
+                    <div class="cycle-step-item" id="step3" onclick="highlightCycleStep(3)">
+                        <div class="cycle-step-num">3</div>
+                        <div>
+                            <div class="cycle-step-title">3. Coord. Regional</div>
+                            <div class="cycle-step-actor">Polo Regional / Estado</div>
+                        </div>
+                    </div>
+                    <div class="cycle-step-item" id="step4" onclick="highlightCycleStep(4)">
+                        <div class="cycle-step-num">4</div>
+                        <div>
+                            <div class="cycle-step-title">4. Brasília (Emenda)</div>
+                            <div class="cycle-step-actor">Deputado & SIOP</div>
+                        </div>
+                    </div>
+                    <div class="cycle-step-item" id="step5" onclick="highlightCycleStep(5)">
+                        <div class="cycle-step-num success"><i class="fa-solid fa-check"></i></div>
+                        <div>
+                            <div class="cycle-step-title">5. Retorno & Voto</div>
+                            <div class="cycle-step-actor">WhatsApp do Eleitor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOX DINÂMICO DE EXPLICAÇÃO DA ETAPA SELECIONADA -->
+                <div id="cycleExplainerBox" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 16px; font-size: 12px; line-height: 1.5; color: #e2e8f0;">
+                    <strong style="color: #38bdf8;"><i class="fa-solid fa-circle-info"></i> Etapa 1: A Liderança Comunitária na Ponta:</strong>
+                    O cabo eleitoral ou vereador ouve o morador no bairro e cadastra nome, telefone e foto do problema. Essa demanda entra automaticamente no funil para não se perder.
+                </div>
+            </div>
+
+            <!-- SUB-NAVEGAÇÃO DO MÓDULO -->
+            <div class="tabs-nav" style="margin-bottom: 20px; background: white; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); display: flex; gap: 8px;">
+                <button class="tab-btn active" id="tabNavSubMobile" onclick="switchDemandasSubTab('mobile')">
+                    <i class="fa-solid fa-mobile-screen" style="color: var(--primary);"></i>
+                    <strong>1. App da Liderança (Ponta)</strong>
+                </button>
+                <button class="tab-btn" id="tabNavSubMesa" onclick="switchDemandasSubTab('mesa')">
+                    <i class="fa-solid fa-list-check" style="color: var(--emerald);"></i>
+                    <strong>2. Mesa de Triagem & Funil de Demandas</strong>
+                    <span class="badge-counter" style="background: var(--emerald);" id="badgeMesaCount">5 Demandas</span>
+                </button>
+                <button class="tab-btn" id="tabNavSubRetorno" onclick="switchDemandasSubTab('retorno')">
+                    <i class="fa-solid fa-bullhorn" style="color: #8b5cf6;"></i>
+                    <strong>3. Retorno ao Eleitor & Capitalização Política</strong>
+                    <span class="badge-counter" style="background: #8b5cf6;" id="badgeRetornoCount">1 Vitória Pronta</span>
+                </button>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- SUB-ABA 1: APP MOBILE DA LIDERANÇA (A PONTA)                    -->
+            <!-- ============================================================== -->
+            <div id="subViewDemandasMobile" class="sub-tab-panel active">
                 <div class="grid-2">
-                    
                     <!-- Simulação Mobile: Enviar Pedido da Comunidade -->
                     <div class="mobile-frame-container">
                         <div class="mobile-frame-header">
@@ -839,45 +921,94 @@
                                 </div>
                             </div>
 
-                            <h4 style="font-size: 15px; margin: 16px 0 8px 0; color: var(--navy-900);">
-                                <i class="fa-solid fa-circle-plus" style="color: var(--primary);"></i> Registrar Demanda da Comunidade
+                            <h4 style="font-size: 15px; margin: 16px 0 6px 0; color: var(--navy-900);">
+                                <i class="fa-solid fa-circle-plus" style="color: var(--primary);"></i> Novo Pedido do Bairro
                             </h4>
                             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-                                Envie fotos e detalhes do bairro direto para a equipe de Brasília analisar:
+                                Cadastre o eleitor e a demanda para a equipe do gabinete analisar e dar retorno:
                             </p>
 
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="text" id="mobTitulo" class="input-field" placeholder="Ex: Reforma da Sala de Vacinas da UBS...">
-                                <select id="mobArea" class="input-select">
-                                    <option value="Saúde">Saúde (Postinho, Remédio, Ambulância)</option>
-                                    <option value="Agricultura">Agricultura / Estrada Rural</option>
-                                    <option value="Infraestrutura">Infraestrutura (Asfalto, Bueiro, Luz)</option>
-                                    <option value="Educação">Educação / Escola do Bairro</option>
-                                </select>
-                                <textarea id="mobDescricao" class="input-field" style="height: 70px;" placeholder="Explique a urgência da comunidade..."></textarea>
+                                <div>
+                                    <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">Nome do Morador / Solicitante:</label>
+                                    <input type="text" id="mobNomeEleitor" class="input-field" placeholder="Ex: Dona Maria Oliveira">
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                    <div>
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">WhatsApp:</label>
+                                        <input type="text" id="mobWhatsappEleitor" class="input-field" placeholder="(42) 99812-4411">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">Bairro / Localidade:</label>
+                                        <input type="text" id="mobBairroEleitor" class="input-field" placeholder="Vila Esperança">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">Título do Pedido:</label>
+                                    <input type="text" id="mobTitulo" class="input-field" placeholder="Ex: Reforma da Sala de Vacinas e Gerador...">
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px;">
+                                    <div>
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">Área Temática:</label>
+                                        <select id="mobArea" class="input-select">
+                                            <option value="Saúde">Saúde (Postinho, UBS, Remédio)</option>
+                                            <option value="Infraestrutura">Infraestrutura (Asfalto, Luz)</option>
+                                            <option value="Agricultura">Agricultura / Estrada Rural</option>
+                                            <option value="Educação">Educação / Escola</option>
+                                            <option value="Social">Apoio Social / Individual</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">Urgência:</label>
+                                        <select id="mobUrgencia" class="input-select">
+                                            <option value="Alta">Alta (Crítico)</option>
+                                            <option value="Média">Média</option>
+                                            <option value="Baixa">Rotina</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label style="font-size: 11px; font-weight: 700; color: var(--navy-900);">Descrição / Motivo:</label>
+                                    <textarea id="mobDescricao" class="input-field" style="height: 65px;" placeholder="Explique por que esse pedido é importante para o bairro..."></textarea>
+                                </div>
                                 
                                 <div class="upload-fake-box" onclick="simulateAttachPhoto()">
                                     <i class="fa-solid fa-camera"></i> <span id="photoStatusText">Tirar Foto do Local (Opcional)</span>
                                 </div>
 
                                 <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="submitMobileDemand()">
-                                    <i class="fa-solid fa-paper-plane"></i> Enviar Pedido para o Gabinete
+                                    <i class="fa-solid fa-paper-plane"></i> Enviar para Triagem do Gabinete
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Lado Direito: Central de Materiais de Prestação de Contas -->
+                    <!-- Lado Direito: Acompanhamento da Liderança e Cards -->
                     <div>
                         <div class="card">
                             <div class="card-title" style="margin-bottom: 12px;">
-                                <i class="fa-solid fa-share-nodes" style="color: var(--emerald);"></i>
-                                Materiais Prontos para Compartilhar no WhatsApp
+                                <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i>
+                                Meus Pedidos Cadastrados & Status em Tempo Real
                             </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-                                Cards e textos oficiais gerados pelo gabinete para o cabo eleitoral divulgar no bairro:
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                                A liderança acompanha pelo celular onde cada pedido está tramitando:
                             </p>
 
+                            <div id="minhasDemandasPontaList" style="display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Renderizado dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Materiais Prontos para Compartilhar -->
+                        <div class="card" style="margin-top: 16px;">
+                            <div class="card-title" style="margin-bottom: 12px;">
+                                <i class="fa-solid fa-share-nodes" style="color: var(--emerald);"></i>
+                                Cards Oficiais do Deputado para Compartilhar no WhatsApp
+                            </div>
                             <div class="share-card">
                                 <div style="display: flex; gap: 12px; align-items: center;">
                                     <div style="background: #dcfce7; color: #15803d; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
@@ -892,40 +1023,124 @@
                                     <i class="fa-brands fa-whatsapp"></i> Compartilhar no Grupo do Bairro
                                 </button>
                             </div>
-
-                            <div class="share-card" style="margin-top: 12px;">
-                                <div style="display: flex; gap: 12px; align-items: center;">
-                                    <div style="background: #eff6ff; color: #1d4ed8; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                        <i class="fa-solid fa-road"></i>
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <div style="font-weight: 700; font-size: 13px;">Card: Asfalto no Bairro Nova Rússia (Ponta Grossa)</div>
-                                        <div style="font-size: 11px; color: var(--text-muted);">R$ 1.5 milhão de emenda paga</div>
-                                    </div>
-                                </div>
-                                <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 10px;" onclick="shareCardWhatsApp('Ponta Grossa Asfalto')">
-                                    <i class="fa-brands fa-whatsapp"></i> Compartilhar no Grupo do Bairro
-                                </button>
-                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Card de Metas da Liderança -->
-                        <div class="card" style="margin-top: 16px;">
-                            <div class="card-title" style="margin-bottom: 8px; font-size: 14px;">
-                                <i class="fa-solid fa-users" style="color: var(--purple);"></i> Minha Rede de Eleitores Cadastrados
+            <!-- ============================================================== -->
+            <!-- SUB-ABA 2: MESA DE TRIAGEM & DESPACHO (ASSESSOR MUNICIPAL/REG) -->
+            <!-- ============================================================== -->
+            <div id="subViewDemandasMesa" class="sub-tab-panel" style="display: none;">
+                <div class="card" style="margin-bottom: 18px;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">
+                                <i class="fa-solid fa-list-check" style="color: var(--emerald);"></i>
+                                Funil de Triagem & Encaminhamento das Demandas
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 800; color: var(--navy-900);">142 pessoas</div>
-                                    <span style="font-size: 12px; color: var(--text-muted);">Cadastradas no Distrito Vila Esperança</span>
-                                </div>
-                                <button class="btn btn-sm btn-outline" onclick="openNewVoterModal()">
-                                    <i class="fa-solid fa-user-plus"></i> Novo Cadastro
-                                </button>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                <strong>Regra de Ouro do Gabinete:</strong> O que é municipal deve ser cobrado da prefeitura; o que for grande e estruturante sobe para virar Emenda Parlamentar em Brasília!
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="simulateNewIncomingDemand()">
+                                <i class="fa-solid fa-plus"></i> Simular Pedido Chegando da Ponta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KANBAN DE 4 COLUNAS OPERACIONAIS DE TRIAGEM -->
+                <div class="kanban-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    
+                    <!-- Coluna 1: Recebidas da Ponta (Aguardando Triagem) -->
+                    <div class="kanban-col">
+                        <div class="kanban-header">
+                            <div>
+                                <span class="legend-dot blue"></span>
+                                <strong>1. Recebidas da Ponta</strong>
                             </div>
+                            <span class="badge-counter" id="countColDemandas1">2</span>
+                        </div>
+                        <div class="kanban-list" id="colDemandas1List">
+                            <!-- Preenchido dinamicamente -->
                         </div>
                     </div>
 
+                    <!-- Coluna 2: Em Tratativa com a Prefeitura Local -->
+                    <div class="kanban-col">
+                        <div class="kanban-header">
+                            <div>
+                                <span class="legend-dot amber"></span>
+                                <strong>2. Tratando na Prefeitura</strong>
+                            </div>
+                            <span class="badge-counter" id="countColDemandas2">1</span>
+                        </div>
+                        <div class="kanban-list" id="colDemandas2List">
+                            <!-- Preenchido dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Coluna 3: Escaladas para Brasília (Emendas) -->
+                    <div class="kanban-col">
+                        <div class="kanban-header">
+                            <div>
+                                <span class="legend-dot purple"></span>
+                                <strong>3. Escaladas para Brasília</strong>
+                            </div>
+                            <span class="badge-counter" id="countColDemandas3">1</span>
+                        </div>
+                        <div class="kanban-list" id="colDemandas3List">
+                            <!-- Preenchido dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Coluna 4: Atendidas / Retorno Pronto -->
+                    <div class="kanban-col">
+                        <div class="kanban-header">
+                            <div>
+                                <span class="legend-dot green"></span>
+                                <strong>4. Atendidas & Retorno</strong>
+                            </div>
+                            <span class="badge-counter" id="countColDemandas4">1</span>
+                        </div>
+                        <div class="kanban-list" id="colDemandas4List">
+                            <!-- Preenchido dinamicamente -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- SUB-ABA 3: RETORNO AO ELEITOR & CAPITALIZAÇÃO POLÍTICA          -->
+            <!-- ============================================================== -->
+            <div id="subViewDemandasRetorno" class="sub-tab-panel" style="display: none;">
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">
+                                <i class="fa-solid fa-bullhorn" style="color: #8b5cf6;"></i>
+                                Central de Retorno ao Eleitor: Fechando o Ciclo da Reeleição
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                A emenda foi paga e a prefeitura licitou no PNCP? Agora é a hora de <strong>capitalizar o voto</strong>: avise o cidadão que fez o pedido e dê o crédito para a liderança que o cadastrou!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="background: #fdf4ff; border: 1px solid #f0abfc; padding: 12px 16px; border-radius: 8px; font-size: 12px; color: #86198f; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
+                        <div>
+                            <strong>Automação de Fidelização Eleitoral:</strong> Quando o recurso vira edital, o sistema redige a mensagem no WhatsApp agradecendo o voto e a paciência do morador, anexando o card do Deputado e da liderança local.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed de Demandas Concluídas Prontas para Retorno -->
+                <div id="feedDemandasRetornoContainer" style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Renderizado dinamicamente -->
                 </div>
             </div>
 
@@ -1428,6 +1643,56 @@
                 <button class="btn btn-emerald" onclick="confirmarVinculoEmenda()">
                     <i class="fa-solid fa-check"></i> Confirmar Vínculo Oficial
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE RETORNO DIRETO AO ELEITOR / WHATSAPP -->
+    <div id="retornoWhatsAppModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title" style="color: #8b5cf6;">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    Retorno Oficial ao Eleitor & Liderança
+                </div>
+                <button class="btn-close" onclick="closeRetornoWhatsAppModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="background: #fdf4ff; border: 1px solid #f0abfc; padding: 12px 14px; border-radius: 8px; font-size: 12px; color: #86198f; line-height: 1.5;">
+                    <strong>Fidelização Eleitoral:</strong> O pedido feito pelo cidadão virou realidade através de recurso do Dep. Ricardo Silveira. Ao enviar esta mensagem, você consolida o voto da família e valoriza a liderança local que colheu a demanda no bairro!
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border); padding: 10px 14px; border-radius: 8px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: var(--text-muted); font-size: 11px;">Destinatário (Eleitor):</span>
+                        <div style="font-weight: 700; color: var(--navy-900);" id="modalRetornoNomeEleitor">Dona Maria Oliveira</div>
+                        <span style="font-size: 11px; color: var(--emerald); font-weight: 600;" id="modalRetornoTelEleitor">(42) 99812-4411</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color: var(--text-muted); font-size: 11px;">Liderança do Bairro:</span>
+                        <div style="font-weight: 700; color: var(--primary);" id="modalRetornoLideranca">Luciana Santos</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--navy-900); display: block; margin-bottom: 6px;">
+                        <i class="fa-brands fa-whatsapp" style="color: #25d366;"></i> Mensagem Oficial Formatada para WhatsApp:
+                    </label>
+                    <textarea id="modalRetornoMensagemTexto" class="input-field" style="height: 150px; font-size: 12px; line-height: 1.5;"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn btn-outline" onclick="closeRetornoWhatsAppModal()">Fechar</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" onclick="copiarMensagemRetorno()">
+                        <i class="fa-solid fa-copy"></i> Copiar Mensagem
+                    </button>
+                    <button class="btn btn-emerald" onclick="dispararWhatsAppRetorno()">
+                        <i class="fa-brands fa-whatsapp"></i> Disparar WhatsApp
+                    </button>
+                </div>
             </div>
         </div>
     </div>

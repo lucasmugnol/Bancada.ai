@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuickCitySearch();
     autoLoadEditais();
     autoLoadEmendas();
+    initDemandasModule();
 });
 
 /* --------------------------------------------------------------------------
@@ -79,6 +80,9 @@ function switchView(targetView) {
     }
     if (targetView === 'emendas') {
         autoLoadEmendas();
+    }
+    if (targetView === 'campo') {
+        initDemandasModule();
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1541,41 +1545,506 @@ function filterCityList(val) {
 }
 
 /* --------------------------------------------------------------------------
-   6. App Mobile da Ponta (Liderança e Campo)
+   6. Ciclo Político de Demandas (Ponta ➔ Gabinete ➔ Voto)
    -------------------------------------------------------------------------- */
 let photoAttached = false;
 
+const databaseDemandas = [
+    {
+        id: 'dem-101',
+        etapa: 1, // 1: Recebidas da Ponta, 2: Em Tratativa Local, 3: Escalada Brasília, 4: Concluída & Retorno
+        titulo: 'Reforma da Sala de Vacinas e Gerador da UBS',
+        solicitante: 'Dona Maria Oliveira',
+        whatsapp: '(42) 99812-4411',
+        lideranca: 'Luciana Santos (Vila Esperança)',
+        cidade: 'Ponta Grossa',
+        bairro: 'Distrito Vila Esperança',
+        area: 'Saúde',
+        urgencia: 'Alta',
+        urgenciaBadge: 'tag-req',
+        impactoVotos: '~180 famílias atendidas',
+        dataCadastro: 'Hoje às 11:30',
+        desc: 'Quedas constantes de energia estragam doses de vacina infantil. Postinho precisa de gerador e novo piso térmico.',
+        foto: 'sala_vacinas_ubs.jpg'
+    },
+    {
+        id: 'dem-102',
+        etapa: 1,
+        titulo: 'Tapa-buraco e Iluminação de LED na Rua das Palmeiras',
+        solicitante: 'Seu Agenor (Comerciante)',
+        whatsapp: '(45) 99120-7788',
+        lideranca: 'Marcos Vinícius (Comunitário)',
+        cidade: 'Cascavel',
+        bairro: 'Bairro Cascavel Velho',
+        area: 'Infraestrutura',
+        urgencia: 'Média',
+        urgenciaBadge: 'tag-indica',
+        impactoVotos: '~60 votos no comércio',
+        dataCadastro: 'Ontem às 17:15',
+        desc: 'Escuridão na rua gerando assaltos no comércio local. Moradores pedem 12 luminárias de LED e asfalto na travessa.',
+        foto: null
+    },
+    {
+        id: 'dem-103',
+        etapa: 2, // Em tratativa com a prefeitura local
+        titulo: 'Poda de Árvores e Limpeza de Bueiros perto da Escola',
+        solicitante: 'Prof. Cláudia (Diretora)',
+        whatsapp: '(42) 99933-2210',
+        lideranca: 'Luciana Santos',
+        cidade: 'Ponta Grossa',
+        bairro: 'Vila Esperança',
+        area: 'Educação',
+        urgencia: 'Média',
+        urgenciaBadge: 'tag-indica',
+        impactoVotos: 'Comunidade Escolar (220 pais)',
+        dataCadastro: '08/11/2026',
+        desc: 'Ofício nº 44/2026 protocolado pelo assessor municipal na Secretaria de Obras da Prefeitura.',
+        statusTratativa: 'Ofício protocolado na Secretaria de Obras (Aguardando caminhão)'
+    },
+    {
+        id: 'dem-104',
+        etapa: 3, // Escalada para Brasília (Proposta de Emenda Parlamentar)
+        titulo: 'Aquisição de Trator e Grade Aradora para Cooperativa',
+        solicitante: 'João da Cooperativa',
+        whatsapp: '(42) 98844-3322',
+        lideranca: 'Valdir dos Santos (Líder Rural)',
+        cidade: 'Laranjeiras do Sul',
+        bairro: 'Comunidade Campo Novo',
+        area: 'Agricultura',
+        urgencia: 'Alta',
+        urgenciaBadge: 'tag-req',
+        impactoVotos: '45 famílias de pequenos produtores',
+        dataCadastro: '05/11/2026',
+        desc: 'Demanda de R$ 450.000 agrupada pelo coordenador regional e enviada para Brasília. Cadastrada na esteira como Emenda MAPA.',
+        emendaVinculadaId: 'em-13',
+        emendaValor: 'R$ 450.000,00'
+    },
+    {
+        id: 'dem-105',
+        etapa: 4, // Concluída / Licitação no PNCP -> Pronta para Retorno Eleitoral!
+        titulo: 'Pavimentação Asfáltica da Rua Principal e Galerias',
+        solicitante: 'Dona Neusa (Assoc. Moradores)',
+        whatsapp: '(42) 99988-1234',
+        lideranca: 'Luciana Santos',
+        cidade: 'Ponta Grossa',
+        bairro: 'Bairro Nova Rússia',
+        area: 'Infraestrutura',
+        urgencia: 'Concluída',
+        urgenciaBadge: 'tag-pl',
+        impactoVotos: '~850 moradores beneficiados',
+        dataCadastro: '15/10/2026',
+        desc: 'Emenda nº 2026-001 de R$ 1.5M paga na Caixa! Prefeitura acaba de publicar a licitação no PNCP (Concorrência nº 014/2026).',
+        pncpNumero: '80236566-1-000042/2026',
+        retornoEnviado: false
+    }
+];
+
+function initDemandasModule() {
+    renderDemandasMesa();
+    renderDemandasPonta();
+    renderDemandasRetorno();
+    updateDemandasBadges();
+}
+
+const cycleStepsInfo = {
+    1: {
+        title: "Etapa 1: A Liderança Comunitária na Ponta",
+        text: "O cabo eleitoral ou vereador ouve o morador no bairro e cadastra nome, telefone e foto do problema. Essa demanda entra automaticamente no funil para não se perder.",
+        color: "#38bdf8"
+    },
+    2: {
+        title: "Etapa 2: Triagem Técnica Local (Assessor Municipal)",
+        text: "O assessor da cidade analisa a demanda: se for coisa rápida que a própria prefeitura resolve (ex: tapa-buraco, poda de árvore), ele protocola ofício e cobra o Secretário Municipal sem incomodar Brasília.",
+        color: "#f59e0b"
+    },
+    3: {
+        title: "Etapa 3: Coordenação Regional & Polo Estratégico",
+        text: "Se for um problema maior (ex: falta de van, asfalto no bairro, ponte rural), a coordenação regional agrupa pedidos de cidades vizinhas e monta a justificativa para apresentar ao Deputado.",
+        color: "#8b5cf6"
+    },
+    4: {
+        title: "Etapa 4: Gabinete de Brasília (Transformação em Emenda)",
+        text: "O Deputado e o Consultor de Orçamento incluem a indicação no SIOP, FNS ou Transferegov. O recurso é empenhado e pago na conta corrente da prefeitura na Caixa/Banco do Brasil.",
+        color: "#0284c7"
+    },
+    5: {
+        title: "Etapa 5: O Retorno Eleitoral & Voto Consolidado (Do PNCP para a Ponta!)",
+        text: "Assim que a prefeitura publica o edital de licitação no PNCP, o sistema dispara a mensagem no WhatsApp da liderança e do morador que fez o pedido: 'O seu pedido virou realidade com emenda do Deputado!'. O voto da família está blindado.",
+        color: "#10b981"
+    }
+};
+
+function highlightCycleStep(step) {
+    for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`step${i}`);
+        if (el) {
+            if (i === step) el.classList.add('active');
+            else el.classList.remove('active');
+        }
+    }
+
+    const box = document.getElementById('cycleExplainerBox');
+    const info = cycleStepsInfo[step];
+    if (box && info) {
+        box.innerHTML = `<strong style="color: ${info.color};"><i class="fa-solid fa-circle-info"></i> ${info.title}:</strong> ${info.text}`;
+    }
+}
+
+function switchDemandasSubTab(subTab) {
+    const btnMob = document.getElementById('tabNavSubMobile');
+    const btnMesa = document.getElementById('tabNavSubMesa');
+    const btnRet = document.getElementById('tabNavSubRetorno');
+
+    const panelMob = document.getElementById('subViewDemandasMobile');
+    const panelMesa = document.getElementById('subViewDemandasMesa');
+    const panelRet = document.getElementById('subViewDemandasRetorno');
+
+    if (btnMob) btnMob.classList.toggle('active', subTab === 'mobile');
+    if (btnMesa) btnMesa.classList.toggle('active', subTab === 'mesa');
+    if (btnRet) btnRet.classList.toggle('active', subTab === 'retorno');
+
+    if (panelMob) panelMob.style.display = subTab === 'mobile' ? 'block' : 'none';
+    if (panelMesa) panelMesa.style.display = subTab === 'mesa' ? 'block' : 'none';
+    if (panelRet) panelRet.style.display = subTab === 'retorno' ? 'block' : 'none';
+
+    if (subTab === 'mesa') renderDemandasMesa();
+    if (subTab === 'retorno') renderDemandasRetorno();
+    if (subTab === 'mobile') renderDemandasPonta();
+}
+
+function updateDemandasBadges() {
+    const count1 = databaseDemandas.filter(d => d.etapa === 1).length;
+    const count2 = databaseDemandas.filter(d => d.etapa === 2).length;
+    const count3 = databaseDemandas.filter(d => d.etapa === 3).length;
+    const count4 = databaseDemandas.filter(d => d.etapa === 4).length;
+
+    const el1 = document.getElementById('countColDemandas1');
+    const el2 = document.getElementById('countColDemandas2');
+    const el3 = document.getElementById('countColDemandas3');
+    const el4 = document.getElementById('countColDemandas4');
+
+    if (el1) el1.textContent = count1;
+    if (el2) el2.textContent = count2;
+    if (el3) el3.textContent = count3;
+    if (el4) el4.textContent = count4;
+
+    const badgeTop = document.getElementById('badgeDemandasTop');
+    if (badgeTop) badgeTop.textContent = databaseDemandas.length;
+
+    const badgeMesa = document.getElementById('badgeMesaCount');
+    if (badgeMesa) badgeMesa.textContent = `${databaseDemandas.length} Demandas`;
+
+    const prontosRetorno = databaseDemandas.filter(d => d.etapa === 4 && !d.retornoEnviado).length;
+    const badgeRet = document.getElementById('badgeRetornoCount');
+    if (badgeRet) badgeRet.textContent = `${prontosRetorno} Vitória${prontosRetorno === 1 ? '' : 's'} Pronta${prontosRetorno === 1 ? '' : 's'}`;
+
+    const badgeTriagem = document.getElementById('badgeDemandasTriagem');
+    if (badgeTriagem) badgeTriagem.textContent = databaseDemandas.length;
+}
+
+function renderDemandasMesa() {
+    for (let etapa = 1; etapa <= 4; etapa++) {
+        const colEl = document.getElementById(`colDemandas${etapa}List`);
+        if (!colEl) continue;
+
+        const list = databaseDemandas.filter(d => d.etapa === etapa);
+
+        if (list.length === 0) {
+            colEl.innerHTML = `<div style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 11px;">Nenhuma demanda nesta etapa</div>`;
+            continue;
+        }
+
+        colEl.innerHTML = list.map(item => {
+            let actionsHtml = '';
+
+            if (item.etapa === 1) {
+                actionsHtml = `
+                    <div style="display: flex; gap: 6px; margin-top: 8px;">
+                        <button class="btn btn-sm btn-outline" style="flex: 1; font-size: 11px; padding: 6px;" onclick="moverDemandaEtapa('${item.id}', 2)">
+                            <i class="fa-solid fa-landmark"></i> Tratar na Pref.
+                        </button>
+                        <button class="btn btn-sm btn-primary" style="flex: 1; font-size: 11px; padding: 6px;" onclick="moverDemandaEtapa('${item.id}', 3)">
+                            <i class="fa-solid fa-plane-up"></i> Escalar Brasília
+                        </button>
+                    </div>
+                `;
+            } else if (item.etapa === 2) {
+                actionsHtml = `
+                    <div style="margin-top: 6px; font-size: 11px; color: #b45309; background: #fffbeb; padding: 6px 8px; border-radius: 6px; border: 1px solid #fef3c7;">
+                        <i class="fa-solid fa-clock"></i> ${item.statusTratativa || 'Cobrando secretaria municipal'}
+                    </div>
+                    <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 8px; font-size: 11px;" onclick="moverDemandaEtapa('${item.id}', 4)">
+                        <i class="fa-solid fa-check"></i> Prefeitura Resolveu
+                    </button>
+                `;
+            } else if (item.etapa === 3) {
+                actionsHtml = `
+                    <div style="margin-top: 6px; font-size: 11px; color: #1e40af; background: #eff6ff; padding: 6px 8px; border-radius: 6px; border: 1px solid #bfdbfe;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Emenda Cadastrada: <strong>${item.emendaValor || 'R$ 450 mil'}</strong>
+                    </div>
+                    <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 8px; font-size: 11px;" onclick="moverDemandaEtapa('${item.id}', 4)">
+                        <i class="fa-solid fa-circle-check"></i> Dinheiro Pago / Licitar
+                    </button>
+                `;
+            } else if (item.etapa === 4) {
+                actionsHtml = `
+                    <div style="margin-top: 6px; font-size: 11px; color: #166534; background: #f0fdf4; padding: 6px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                        <i class="fa-solid fa-circle-check"></i> ${item.pncpNumero ? 'Licitação Publicada no PNCP' : 'Demanda Atendida com Sucesso'}
+                    </div>
+                    <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 8px; font-size: 11px;" onclick="abrirRetornoWhatsApp('${item.id}')">
+                        <i class="fa-brands fa-whatsapp"></i> Avisar Eleitor & Liderança
+                    </button>
+                `;
+            }
+
+            return `
+                <div class="demanda-card" id="card-${item.id}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="tag ${item.urgenciaBadge}">${item.area}</span>
+                        <span style="font-size: 10px; color: var(--text-muted);"><i class="fa-solid fa-calendar-day"></i> ${item.dataCadastro}</span>
+                    </div>
+
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--navy-900); line-height: 1.35; margin: 2px 0;">
+                        ${item.titulo}
+                    </h4>
+
+                    <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                        <div><strong>Morador:</strong> ${item.solicitante} (${item.bairro} - ${item.cidade})</div>
+                        <div><strong>Liderança:</strong> <span style="color: var(--primary); font-weight: 600;">${item.lideranca}</span></div>
+                    </div>
+
+                    <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0; line-height: 1.4; background: #f8fafc; padding: 6px 8px; border-radius: 6px;">
+                        ${item.desc}
+                    </p>
+
+                    <div style="font-size: 11px; color: var(--emerald); font-weight: 600;">
+                        <i class="fa-solid fa-users"></i> Potencial: ${item.impactoVotos}
+                    </div>
+
+                    ${actionsHtml}
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function renderDemandasPonta() {
+    const container = document.getElementById('minhasDemandasPontaList');
+    if (!container) return;
+
+    // Filtra as demandas cadastradas por Luciana Santos
+    const list = databaseDemandas.filter(d => d.lideranca.includes('Luciana'));
+
+    container.innerHTML = list.map(item => {
+        let statusBadge = '';
+        if (item.etapa === 1) statusBadge = '<span class="tag tag-req">Em Análise no Gabinete</span>';
+        else if (item.etapa === 2) statusBadge = '<span class="tag tag-indica">Cobrando a Prefeitura</span>';
+        else if (item.etapa === 3) statusBadge = '<span class="tag tag-pl">Virou Emenda em Brasília</span>';
+        else if (item.etapa === 4) statusBadge = '<span class="tag tag-success">✓ Obra Licitada / Atendida</span>';
+
+        return `
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--primary);">${item.solicitante}</span>
+                    ${statusBadge}
+                </div>
+                <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">${item.titulo}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${item.desc.substring(0, 80)}...</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderDemandasRetorno() {
+    const container = document.getElementById('feedDemandasRetornoContainer');
+    if (!container) return;
+
+    const concluidas = databaseDemandas.filter(d => d.etapa === 4);
+
+    if (concluidas.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-muted);">Nenhuma vitória pronta para retorno no momento.</div>`;
+        return;
+    }
+
+    container.innerHTML = concluidas.map(item => `
+        <div class="card" style="border-left: 4px solid var(--emerald); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div style="flex: 1; min-width: 280px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span class="tag tag-success"><i class="fa-solid fa-circle-check"></i> RECURSO GARANTIDO & LICITADO</span>
+                    <span class="tag tag-pl">${item.cidade} (${item.bairro})</span>
+                </div>
+                <h3 style="font-size: 16px; color: var(--navy-900); margin-bottom: 4px;">${item.titulo}</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+                    <strong>Solicitado originalmente por:</strong> ${item.solicitante} (${item.whatsapp}) • <strong>Liderança:</strong> ${item.lideranca}
+                </p>
+                <div style="font-size: 11px; color: #166534; font-weight: 600; margin-top: 4px;">
+                    <i class="fa-solid fa-bullhorn"></i> Impacto Político: ${item.impactoVotos}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn btn-emerald" onclick="abrirRetornoWhatsApp('${item.id}')">
+                    <i class="fa-brands fa-whatsapp"></i> Avisar Eleitor e Liderança
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function moverDemandaEtapa(id, novaEtapa) {
+    const item = databaseDemandas.find(d => d.id === id);
+    if (item) {
+        item.etapa = novaEtapa;
+        updateDemandasBadges();
+        renderDemandasMesa();
+        renderDemandasPonta();
+        renderDemandasRetorno();
+
+        const etapasNomes = {
+            2: 'Tratativa com a Prefeitura Local',
+            3: 'Escalada para Brasília (Emenda Parlamentar)',
+            4: 'Atendida com Sucesso'
+        };
+        showToast(`Demanda "${item.titulo}" movida para: ${etapasNomes[novaEtapa]}!`, 'success');
+    }
+}
+
 function simulateAttachPhoto() {
     photoAttached = true;
-    document.getElementById('photoStatusText').innerHTML = '<span style="color: var(--emerald); font-weight: 700;">✓ Foto Anexada (sala_vacinas_ubs.jpg)</span>';
+    const txt = document.getElementById('photoStatusText');
+    if (txt) txt.innerHTML = '<span style="color: var(--emerald); font-weight: 700;">✓ Foto Anexada (sala_vacinas_ubs.jpg)</span>';
     showToast('Foto da demanda anexada pelo celular!', 'success');
 }
 
 function submitMobileDemand() {
-    const titulo = document.getElementById('mobTitulo').value.trim();
-    const area = document.getElementById('mobArea').value;
-    const desc = document.getElementById('mobDescricao').value.trim();
+    const nome = document.getElementById('mobNomeEleitor')?.value.trim() || 'Morador da Vila';
+    const whatsapp = document.getElementById('mobWhatsappEleitor')?.value.trim() || '(42) 99800-0000';
+    const bairro = document.getElementById('mobBairroEleitor')?.value.trim() || 'Bairro Vila Esperança';
+    const titulo = document.getElementById('mobTitulo')?.value.trim();
+    const area = document.getElementById('mobArea')?.value || 'Saúde';
+    const urgencia = document.getElementById('mobUrgencia')?.value || 'Alta';
+    const desc = document.getElementById('mobDescricao')?.value.trim() || 'Solicitação urgente enviada pela comunidade.';
 
     if (!titulo) {
         showToast('Por favor, informe o título da solicitação.', 'warning');
         return;
     }
 
-    const btn = event.currentTarget;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando para Brasília...';
-    btn.disabled = true;
+    const newId = `dem-${Date.now().toString().slice(-4)}`;
+    databaseDemandas.unshift({
+        id: newId,
+        etapa: 1, // Cai direto na Mesa de Triagem (Coluna 1)
+        titulo: titulo,
+        solicitante: nome,
+        whatsapp: whatsapp,
+        lideranca: 'Luciana Santos (Distrito Vila Esperança)',
+        cidade: 'Ponta Grossa',
+        bairro: bairro,
+        area: area,
+        urgencia: urgencia,
+        urgenciaBadge: urgencia === 'Alta' ? 'tag-req' : 'tag-indica',
+        impactoVotos: '~100 a 200 eleitores no bairro',
+        dataCadastro: 'Agora',
+        desc: desc,
+        foto: photoAttached ? 'foto_comunidade.jpg' : null
+    });
 
-    setTimeout(() => {
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Pedido para o Gabinete';
-        btn.disabled = false;
+    // Limpa os campos
+    if (document.getElementById('mobNomeEleitor')) document.getElementById('mobNomeEleitor').value = '';
+    if (document.getElementById('mobWhatsappEleitor')) document.getElementById('mobWhatsappEleitor').value = '';
+    if (document.getElementById('mobTitulo')) document.getElementById('mobTitulo').value = '';
+    if (document.getElementById('mobDescricao')) document.getElementById('mobDescricao').value = '';
+    if (document.getElementById('photoStatusText')) document.getElementById('photoStatusText').textContent = 'Tirar Foto do Local (Opcional)';
+    photoAttached = false;
 
-        document.getElementById('mobTitulo').value = '';
-        document.getElementById('mobDescricao').value = '';
-        document.getElementById('photoStatusText').textContent = 'Tirar Foto do Local (Opcional)';
-        photoAttached = false;
+    updateDemandasBadges();
+    renderDemandasPonta();
+    renderDemandasMesa();
 
-        showToast(`Demanda "${titulo}" (${area}) enviada com sucesso ao gabinete do Deputado!`, 'success');
-    }, 1000);
+    showToast(`Demanda "${titulo}" de ${nome} registrada na ponta e enviada para a Mesa de Triagem!`, 'success');
+}
+
+function simulateNewIncomingDemand() {
+    const nomes = ['Seu Bento (Comunidade Rural)', 'Dona Francisca (Líder da Creche)', 'Marcos da Associação'];
+    const titulos = ['Reparo urgente de Ponte de Madeira', 'Aquisição de Kits Odontológicos para UBS', 'Instalação de Redutor de Velocidade'];
+    const areas = ['Agricultura', 'Saúde', 'Infraestrutura'];
+
+    const idx = Math.floor(Math.random() * nomes.length);
+    const newId = `dem-${Date.now().toString().slice(-4)}`;
+
+    databaseDemandas.unshift({
+        id: newId,
+        etapa: 1,
+        titulo: titulos[idx],
+        solicitante: nomes[idx],
+        whatsapp: '(42) 99111-2233',
+        lideranca: 'Luciana Santos',
+        cidade: 'Ponta Grossa',
+        bairro: 'Distrito Vila Esperança',
+        area: areas[idx],
+        urgencia: 'Alta',
+        urgenciaBadge: 'tag-req',
+        impactoVotos: '~120 famílias',
+        dataCadastro: 'Agora mesmo',
+        desc: 'Pedido recolhido durante visita do cabo eleitoral à comunidade nesta manhã.'
+    });
+
+    updateDemandasBadges();
+    renderDemandasMesa();
+    renderDemandasPonta();
+    showToast(`Novo pedido de ${nomes[idx]} recebido da ponta!`, 'info');
+}
+
+let currentRetornoDemanda = null;
+
+function abrirRetornoWhatsApp(id) {
+    const item = databaseDemandas.find(d => d.id === id);
+    if (!item) return;
+
+    currentRetornoDemanda = item;
+
+    const modal = document.getElementById('retornoWhatsAppModal');
+    const nomeEl = document.getElementById('modalRetornoNomeEleitor');
+    const telEl = document.getElementById('modalRetornoTelEleitor');
+    const lidEl = document.getElementById('modalRetornoLideranca');
+    const msgEl = document.getElementById('modalRetornoMensagemTexto');
+
+    if (nomeEl) nomeEl.textContent = item.solicitante;
+    if (telEl) telEl.textContent = item.whatsapp;
+    if (lidEl) lidEl.textContent = item.lideranca;
+
+    const msg = `Olá ${item.solicitante}, tudo bem? Aqui é da assessoria do Deputado Federal Ricardo Silveira!\n\nLembra daquele pedido para "${item.titulo}" que você e a ${item.lideranca} nos apresentaram? Temos uma grande notícia:\n\n🎉 O Deputado viabilizou o recurso e a prefeitura já está com o edital aberto no Portal Nacional de Contratações Públicas (PNCP) para iniciar a execução!\n\nO Deputado Ricardo Silveira agradece imensamente a sua confiança no nosso trabalho em Brasília. Seguimos acompanhando de perto para que a entrega aconteça com a máxima agilidade!\n\nUm forte abraço nosso e da ${item.lideranca}!`;
+
+    if (msgEl) msgEl.value = msg;
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeRetornoWhatsAppModal() {
+    const modal = document.getElementById('retornoWhatsAppModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function copiarMensagemRetorno() {
+    const text = document.getElementById('modalRetornoMensagemTexto');
+    if (text) {
+        navigator.clipboard.writeText(text.value).catch(() => {});
+        showToast('Mensagem de retorno ao eleitor copiada com sucesso!', 'success');
+    }
+}
+
+function dispararWhatsAppRetorno() {
+    const text = document.getElementById('modalRetornoMensagemTexto');
+    const encoded = encodeURIComponent(text ? text.value : '');
+    
+    if (currentRetornoDemanda) {
+        currentRetornoDemanda.retornoEnviado = true;
+        updateDemandasBadges();
+        renderDemandasRetorno();
+    }
+
+    closeRetornoWhatsAppModal();
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    showToast('WhatsApp aberto! Retorno prestado e voto consolidado com o eleitor e a liderança.', 'success');
 }
 
 function shareCardWhatsApp(cardName) {
