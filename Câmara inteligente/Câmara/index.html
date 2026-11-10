@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mandato Inteligente • Gestão Parlamentar & Articulação Federal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOPBAR INSTITUCIONAL -->
+    <header class="app-header">
+        <div class="brand-container">
+            <div class="brand-logo">
+                <i class="fa-solid fa-landmark-flag"></i>
+            </div>
+            <div class="brand-title">
+                <h1>Mandato Inteligente</h1>
+                <span>Gabinete Deputado Federal • 57ª Legislatura</span>
+            </div>
+        </div>
+
+        <!-- SELETOR DE PERFIL / MÓDULO -->
+        <nav class="nav-modules" aria-label="Navegação do Mandato">
+            <button class="nav-btn active" data-view="cockpit">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span>Cockpit Deputado</span>
+            </button>
+            <button class="nav-btn" data-view="editais">
+                <i class="fa-solid fa-satellite-dish"></i>
+                <span>Radar de Editais</span>
+                <span class="badge-counter" id="badgeEditais">8</span>
+            </button>
+            <button class="nav-btn" data-view="emendas">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+                <span>Esteira de Emendas</span>
+                <span class="badge-alert" id="badgeDiligencias" title="Diligências com prazo">2</span>
+            </button>
+            <button class="nav-btn" data-view="cidades">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <span>Dossiê das Cidades</span>
+            </button>
+            <button class="nav-btn" data-view="campo">
+                <i class="fa-solid fa-mobile-screen"></i>
+                <span>App Liderança / Campo</span>
+            </button>
+        </nav>
+
+        <!-- IDENTIFICAÇÃO DO USUÁRIO CONECTADO -->
+        <div class="user-profile-badge">
+            <div class="user-avatar" id="avatarInitials">DF</div>
+            <div class="user-info">
+                <div class="user-name" id="userNameDisplay">Dep. Ricardo Silveira</div>
+                <div class="user-role" id="userRoleDisplay">Brasília • Anexo IV / Estado</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <main class="app-viewport">
+
+        <!-- ================================================================== -->
+        <!-- MÓDULO 1: COCKPIT DO DEPUTADO & CHEFE DE GABINETE                   -->
+        <!-- ================================================================== -->
+        <section id="view-cockpit" class="view-panel active">
+            
+            <!-- Banner de Alertas Estratégicos -->
+            <div class="alert-banner">
+                <div class="alert-banner-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="alert-banner-content">
+                    <strong>ATENÇÃO GABINETE:</strong> O Fundo Nacional de Saúde (FNS) abriu diligência na Proposta n.º 84729/2026 de <strong>Guaratuba</strong>. Prazo para a prefeitura responder expira em <strong>48 horas</strong> para não perder R$ 850.000,00.
+                </div>
+                <button class="btn btn-sm btn-white" onclick="switchView('emendas')">Ver Emenda</button>
+            </div>
+
+            <!-- Métricas Principais -->
+            <div class="grid-4" style="margin-bottom: 24px;">
+                <div class="metric-card">
+                    <div class="metric-icon blue"><i class="fa-solid fa-coins"></i></div>
+                    <div class="metric-data">
+                        <h3>R$ 37.8 M</h3>
+                        <span>Total de Emendas Indicadas (2026)</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon emerald"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="metric-data">
+                        <h3 id="statTotalPago">R$ 22.4 M</h3>
+                        <span>Pago nas Contas dos Municípios (59%)</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon purple"><i class="fa-solid fa-city"></i></div>
+                    <div class="metric-data">
+                        <h3>48 / 65</h3>
+                        <span>Municípios da Base Atendidos</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon amber"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <div class="metric-data">
+                        <h3>8 Novos</h3>
+                        <span>Editais Federais no Radar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divisão: Ações Imediatas + Agenda da Semana -->
+            <div class="grid-3" style="margin-bottom: 24px;">
+                
+                <!-- Consulta Rápida ao Município (Antes de Atender Prefeito) -->
+                <div class="card" style="grid-column: span 2;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-bolt" style="color: var(--primary);"></i>
+                            Raio-X Imediato do Município (Para Ligação de Prefeito)
+                        </div>
+                        <span class="tag tag-blue">Consulta em 3 Segundos</span>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                        Digite o nome da cidade para saber na hora o que já foi liberado, pedidos pendentes e quem é o prefeito aliado:
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                        <input type="text" id="quickCitySearchInput" class="input-field" placeholder="Ex: Ponta Grossa, Laranjeiras do Sul, Pato Branco..." list="cidadesList">
+                        <datalist id="cidadesList">
+                            <option value="Ponta Grossa">
+                            <option value="Guaratuba">
+                            <option value="Cascavel">
+                            <option value="Pato Branco">
+                            <option value="Laranjeiras do Sul">
+                            <option value="Francisco Beltrão">
+                        </datalist>
+                        <button class="btn btn-primary" onclick="searchQuickCity()"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
+                    </div>
+
+                    <!-- Resultado da Consulta Rápida -->
+                    <div id="quickCityResult" class="quick-city-box">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div>
+                                <h3 id="qcNome" style="font-size: 20px; color: var(--navy-900);">Ponta Grossa (PR)</h3>
+                                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+                                    Prefeito: <strong id="qcPrefeito">Dr. Alisson Mendes (PSD)</strong> • <span class="tag tag-success" id="qcStatus">Aliado de 1ª Hora</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Total Pago no Mandato</div>
+                                <div style="font-size: 22px; font-weight: 800; color: var(--emerald);" id="qcTotalPago">R$ 4.250.000,00</div>
+                            </div>
+                        </div>
+
+                        <div class="grid-3" style="background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px;">
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-muted);">Votos na Última Eleição:</span>
+                                <div style="font-weight: 700; color: var(--navy-900);" id="qcVotos">18.420 votos (2º mais votado)</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-muted);">Última Conquista Paga:</span>
+                                <div style="font-weight: 700; color: var(--emerald);" id="qcUltimaConquista">R$ 1.5M (Asfalto Bairro Nova Rússia)</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-muted);">Pedido Pendente na Fila:</span>
+                                <div style="font-weight: 700; color: var(--amber);" id="qcPedidoPendente">Reforma do Hospital Municipal</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-outline" onclick="openWhatsAppCity()"><i class="fa-brands fa-whatsapp" style="color: #25d366;"></i> Chamar Prefeito no WhatsApp</button>
+                            <button class="btn btn-sm btn-outline" onclick="switchView('cidades')"><i class="fa-solid fa-folder-open"></i> Abrir Dossiê Completo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agenda Brasília x Estado -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-calendar-days" style="color: var(--purple);"></i>
+                            Agenda Brasília & Base
+                        </div>
+                        <span class="tag tag-pl">Brasília</span>
+                    </div>
+
+                    <div class="agenda-timeline">
+                        <div class="agenda-item">
+                            <div class="agenda-time">10:00</div>
+                            <div class="agenda-desc">
+                                <strong>Comissão de Constituição e Justiça (CCJC)</strong>
+                                <span>Plenário 1 • Votação PEC da Reforma Tributária</span>
+                            </div>
+                        </div>
+                        <div class="agenda-item">
+                            <div class="agenda-time">14:30</div>
+                            <div class="agenda-desc">
+                                <strong>Audiência Ministério das Cidades</strong>
+                                <span>Com Prefeito de Cascavel e Secretário de Obras</span>
+                            </div>
+                        </div>
+                        <div class="agenda-item active">
+                            <div class="agenda-time">16:00</div>
+                            <div class="agenda-desc">
+                                <strong>Sessão Deliberativa do Plenário</strong>
+                                <span>Ordem do Dia • Presença Obrigatória</span>
+                            </div>
+                        </div>
+                        <div class="agenda-item">
+                            <div class="agenda-time">Sex 09h</div>
+                            <div class="agenda-desc">
+                                <strong>Voo para o Estado (Paraná)</strong>
+                                <span>Roteiro de inaugurações no Sudoeste</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimas Liberações Pagas -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-money-bill-transfer" style="color: var(--emerald);"></i>
+                        Últimos Recursos Pagos nas Contas dos Municípios (Esta Semana)
+                    </div>
+                    <button class="btn btn-outline" onclick="switchView('emendas')">Ver Todas as Emendas</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Município</th>
+                                <th>Área</th>
+                                <th>Objeto / Destinação</th>
+                                <th>Valor Pago</th>
+                                <th>Data Pagamento</th>
+                                <th>Ações de Comunicação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Ponta Grossa</strong></td>
+                                <td><span class="tag tag-req">Infraestrutura</span></td>
+                                <td>Pavimentação Asfáltica e Drenagem no Bairro N. Rússia</td>
+                                <td><strong style="color: var(--emerald);">R$ 1.500.000,00</strong></td>
+                                <td>Ontem</td>
+                                <td>
+                                    <button class="btn btn-sm btn-emerald" onclick="generateVictoryCard('Ponta Grossa', 'R$ 1.500.000,00', 'Asfalto')">
+                                        <i class="fa-solid fa-bullhorn"></i> Gerar Card Redes
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cascavel</strong></td>
+                                <td><span class="tag tag-indica">Saúde (FNS)</span></td>
+                                <td>Custeio e Aquisição de 2 Ambulâncias Tipo SAMU</td>
+                                <td><strong style="color: var(--emerald);">R$ 800.000,00</strong></td>
+                                <td>10/11/2026</td>
+                                <td>
+                                    <button class="btn btn-sm btn-emerald" onclick="generateVictoryCard('Cascavel', 'R$ 800.000,00', 'Ambulâncias')">
+                                        <i class="fa-solid fa-bullhorn"></i> Gerar Card Redes
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Laranjeiras do Sul</strong></td>
+                                <td><span class="tag tag-pl">Agricultura (MAPA)</span></td>
+                                <td>Patrulha Mecanizada (Trator e Grade Aradora)</td>
+                                <td><strong style="color: var(--emerald);">R$ 450.000,00</strong></td>
+                                <td>08/11/2026</td>
+                                <td>
+                                    <button class="btn btn-sm btn-emerald" onclick="generateVictoryCard('Laranjeiras do Sul', 'R$ 450.000,00', 'Trator Agrícola')">
+                                        <i class="fa-solid fa-bullhorn"></i> Gerar Card Redes
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- MÓDULO 2: RADAR DE EDITAIS & CHAMADAS PÚBLICAS (TRANSFEREGOV/FNS)   -->
+        <!-- ================================================================== -->
+        <section id="view-editais" class="view-panel">
+            
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">
+                            <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i>
+                            Radar Inteligente de Editais e Programas Federais
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                            Monitoramento contínuo do Transferegov, FNS, FNDE, MAPA, Cidades e Diário Oficial da União. Chega de caçar em dezenas de sites!
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="simulateSyncEditais()">
+                            <i class="fa-solid fa-rotate"></i> Sincronizar Agora
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros do Radar -->
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label>Ministério / Órgão:</label>
+                        <select class="input-select" id="filterOrgao" onchange="filterEditais()">
+                            <option value="todos">Todos os Ministérios (8)</option>
+                            <option value="MAPA">MAPA (Agricultura)</option>
+                            <option value="MS">Ministério da Saúde (FNS)</option>
+                            <option value="MEC">MEC / FNDE (Educação)</option>
+                            <option value="MCID">Ministério das Cidades</option>
+                            <option value="MESP">Ministério do Esporte</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Faixa de Valor:</label>
+                        <select class="input-select">
+                            <option>Qualquer Valor</option>
+                            <option>Até R$ 500 mil</option>
+                            <option>R$ 500 mil a R$ 2 Milhões</option>
+                            <option>Acima de R$ 2 Milhões</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="flex: 1;">
+                        <label>Buscar Objeto / Equipamento:</label>
+                        <input type="text" class="input-field" placeholder="Ex: Trator, Asfalto, Ambulância, Quadra..." onkeyup="filterEditaisKeyword(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Editais e Ferramenta de Match por IA -->
+            <div class="grid-3">
+
+                <!-- Coluna da Esquerda: Feed de Editais Encontrados -->
+                <div style="grid-column: span 2; display: flex; flex-direction: column; gap: 16px;">
+
+                    <!-- Edital 1: MAPA -->
+                    <div class="edital-card highlight" id="edital-1">
+                        <div class="edital-header">
+                            <div>
+                                <span class="tag tag-pl">MAPA • AGRICULTURA</span>
+                                <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
+                                    Edital n.º 14/2026 – Aquisição de Patrulhas Mecanizadas e Caminhões Caçamba
+                                </h3>
+                                <div style="font-size: 12px; color: var(--text-muted);">
+                                    Publicado no DOU • Transferegov Programa n.º 5400020260014
+                                </div>
+                            </div>
+                            <div class="edital-badge-puro">
+                                <div class="edital-valor">Até R$ 650.000</div>
+                                <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: 28/11/2026 (Faltam 18 dias)</span>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                            <strong>Elegibilidade:</strong> Municípios com população de até 50 mil habitantes com perfil de agricultura familiar. Permite compra de trator agrícola, grade e caçamba basculante.
+                        </p>
+
+                        <div class="edital-footer">
+                            <div class="ai-match-tag">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> 12 Cidades da sua base são elegíveis!
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('MAPA - Tratores e Caçambas', ['Laranjeiras do Sul', 'Pato Branco', 'Prudentópolis', 'Reserva do Iguaçu', 'Candói'])">
+                                    <i class="fa-solid fa-robot"></i> Ver Análise de Match
+                                </button>
+                                <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('Edital de Tratores do MAPA', 'R$ 650 mil', '28/11')">
+                                    <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edital 2: FNS (Saúde) -->
+                    <div class="edital-card" id="edital-2">
+                        <div class="edital-header">
+                            <div>
+                                <span class="tag tag-indica">MINISTÉRIO DA SAÚDE • FNS</span>
+                                <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
+                                    Portaria n.º 2.410 – Renovação de Frota do Transporte Sanitário Eletivo (Vans Adaptadas)
+                                </h3>
+                                <div style="font-size: 12px; color: var(--text-muted);">
+                                    Fundo Nacional de Saúde • Habilitação Fundo a Fundo
+                                </div>
+                            </div>
+                            <div class="edital-badge-puro">
+                                <div class="edital-valor">R$ 380.000 / Van</div>
+                                <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: 22/11/2026 (Faltam 12 dias)</span>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                            <strong>Elegibilidade:</strong> Municípios que necessitam transportar pacientes para tratamento de hemodiálise e oncologia em cidades polo regionais.
+                        </p>
+
+                        <div class="edital-footer">
+                            <div class="ai-match-tag">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> 8 Cidades com demanda aberta no gabinete!
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('FNS - Vans Sanitárias', ['Guaratuba', 'Piraí do Sul', 'Irati', 'Palmeira'])">
+                                    <i class="fa-solid fa-robot"></i> Ver Análise de Match
+                                </button>
+                                <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('Edital de Vans Sanitárias FNS', 'R$ 380 mil', '22/11')">
+                                    <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edital 3: Ministério das Cidades -->
+                    <div class="edital-card" id="edital-3">
+                        <div class="edital-header">
+                            <div>
+                                <span class="tag tag-req">MINISTÉRIO DAS CIDADES</span>
+                                <h3 style="font-size: 16px; margin: 6px 0; color: var(--navy-900);">
+                                    Chamada Pública n.º 07/2026 – Pavimentação e Iluminação de Vias de Acesso Rural
+                                </h3>
+                                <div style="font-size: 12px; color: var(--text-muted);">
+                                    Secretaria Nacional de Periferias e Mobilidade
+                                </div>
+                            </div>
+                            <div class="edital-badge-puro">
+                                <div class="edital-valor">Até R$ 2.000.000</div>
+                                <span class="edital-prazo"><i class="fa-solid fa-clock"></i> Prazo: 05/12/2026 (Faltam 25 dias)</span>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                            <strong>Elegibilidade:</strong> Cidades com projetos de engenharia prontos para asfalto ou calçamento poliédrico e lâmpadas de LED.
+                        </p>
+
+                        <div class="edital-footer">
+                            <div class="ai-match-tag">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> 5 Cidades com projetos já validados
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm btn-outline" onclick="openAIMatchModal('Min. Cidades - Pavimentação', ['Cascavel', 'Ponta Grossa', 'Castro'])">
+                                    <i class="fa-solid fa-robot"></i> Ver Análise de Match
+                                </button>
+                                <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('Edital de Asfalto Min. Cidades', 'R$ 2 Milhões', '05/12')">
+                                    <i class="fa-brands fa-whatsapp"></i> Avisar Prefeitos Elegíveis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Coluna da Direita: Assistente de IA de Editais -->
+                <div>
+                    <div class="card" style="background: linear-gradient(145deg, #0f172a, #1e293b); color: white; border: none;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                            <div style="background: var(--primary); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 16px; color: white;">IA Analisadora de Editais</h3>
+                                <span style="font-size: 11px; color: #94a3b8;">Lê 100 páginas em 5 segundos</span>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 13px; color: #cbd5e1; margin-bottom: 14px;">
+                            Tem um edital em PDF que o prefeito ou assessor enviou? Cole o link ou texto e a IA extrai requisitos, impedimentos e faz o resumo executivo:
+                        </p>
+
+                        <textarea id="aiEditalInput" class="prompt-textarea" style="background: rgba(255,255,255,0.06); color: white; border-color: rgba(255,255,255,0.15); height: 110px;" placeholder="Cole o texto ou número da chamada pública..."></textarea>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="analyzeEditalWithAI()">
+                            <i class="fa-solid fa-brain"></i> Analisar & Encontrar Cidades Aptas
+                        </button>
+
+                        <div id="aiEditalOutput" style="display: none; margin-top: 16px; background: rgba(255,255,255,0.05); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); font-size: 12px; line-height: 1.6;">
+                            <strong style="color: var(--emerald); display: block; margin-bottom: 4px;">✓ RESUMO GERADO PELA IA:</strong>
+                            <p id="aiResumoTexto">Objeto: Construção de Creches (FNDE). Teto: R$ 3.2M. Requisito: Terreno plano de 2.000m² quitado. Cidades da base com terreno pronto: <strong>Piraí do Sul e Candói</strong>.</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-title" style="font-size: 14px; margin-bottom: 10px;">
+                            <i class="fa-solid fa-bell" style="color: var(--amber);"></i> Notificações do Radar
+                        </div>
+                        <ul style="font-size: 12px; color: var(--text-secondary); line-height: 1.8; padding-left: 18px;">
+                            <li><strong>Ontem às 18h:</strong> Ministério do Esporte abriu edital de Areninhas Sintéticas.</li>
+                            <li><strong>09/11:</strong> FNS prorrogou prazo de proposta de Guaratuba por 48h.</li>
+                            <li><strong>08/11:</strong> Novo lote de emendas Pix liberado na STN.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- MÓDULO 3: ESTEIRA DE EMENDAS PARLAMENTARES (SIOP/TRANSFEREGOV)      -->
+        <!-- ================================================================== -->
+        <section id="view-emendas" class="view-panel">
+            
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">
+                            <i class="fa-solid fa-hand-holding-dollar" style="color: var(--primary);"></i>
+                            Esteira de Monitoramento de Emendas Parlamentares (OGU 2026)
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                            Acompanhamento em tempo real sem precisar abrir o SIOP ou Transferegov todo dia.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline" onclick="showNewEmendaModal()">
+                            <i class="fa-solid fa-plus"></i> Cadastrar Nova Indicação
+                        </button>
+                        <button class="btn btn-primary" onclick="syncEmendasGov()">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Atualizar Status com SIOP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros da Esteira -->
+                <div class="filters-bar" style="margin-bottom: 0;">
+                    <div class="filter-group">
+                        <label>Tipo de Emenda:</label>
+                        <select class="input-select" onchange="filterEmendasType(this.value)">
+                            <option value="todas">Todas (Individuais, Bancada, Comissão)</option>
+                            <option value="pix">Transferência Especial (Emenda Pix)</option>
+                            <option value="definida">Finalidade Definida (Convênio)</option>
+                            <option value="bancada">Emenda de Bancada Estadual</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filtrar por Município:</label>
+                        <input type="text" class="input-field" placeholder="Ex: Cascavel, Guaratuba..." onkeyup="filterEmendasCity(this.value)">
+                    </div>
+                    <div class="filter-group">
+                        <label>Assessor Responsável:</label>
+                        <select class="input-select">
+                            <option>Todos os Assessores</option>
+                            <option>Dr. Renato (Orçamento DF)</option>
+                            <option>Carla Mendes (Base Regional)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KANBAN DA ESTEIRA DE EMENDAS -->
+            <div class="kanban-board">
+                
+                <!-- Coluna 1: Indicação Cadastrada -->
+                <div class="kanban-col">
+                    <div class="kanban-col-header">
+                        <span>1. INDICAÇÃO CADASTRADA</span>
+                        <span class="tag" style="background: #e2e8f0; color: #475569;">3</span>
+                    </div>
+
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-pl">EMENDA PIX</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">SIOP: #2026-018</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">Castro (PR)</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 600.000,00</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">Custeio Geral Municipal. Aguardando aceite da conta corrente no Transferegov.</p>
+                        <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>Resp: Dr. Renato</span>
+                            <span>Prazo: 30/11</span>
+                        </div>
+                    </div>
+
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-req">AGRICULTURA</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">MAPA</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">Reserva do Iguaçu</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 350.000,00</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">Aquisição de Caminhão Pipa. Prefeitura elaborando termo de referência.</p>
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Proposta Cadastrada pela Prefeitura -->
+                <div class="kanban-col">
+                    <div class="kanban-col-header">
+                        <span>2. PROPOSTA CADASTRADA</span>
+                        <span class="tag" style="background: #e0e7ff; color: #3730a3;">4</span>
+                    </div>
+
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-indica">SAÚDE (FNS)</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Prop: 89104</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">Prudentópolis</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 500.000,00</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">Reforma de 2 Postos de Saúde na Zona Rural. Proposta enviada ao Ministério.</p>
+                        <div style="margin-top: 8px; font-size: 11px; color: var(--primary); font-weight: 600;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Em análise no Ministério
+                        </div>
+                    </div>
+
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-req">INFRAESTRUTURA</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">MCID</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">Palmeira</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 1.200.000,00</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">Pavimentação da Estrada de Santa Bárbara. Caixa analisando projeto técnico.</p>
+                    </div>
+                </div>
+
+                <!-- Coluna 3: Em Análise / Diligência Técnica (ALERTA VERMELHO) -->
+                <div class="kanban-col" style="border-top: 3px solid var(--danger);">
+                    <div class="kanban-col-header" style="background: #fee2e2;">
+                        <span style="color: var(--danger);">3. DILIGÊNCIA / ALERTA</span>
+                        <span class="tag" style="background: var(--danger); color: white;">2 URGENTES</span>
+                    </div>
+
+                    <!-- CARD COM RISCO CRÍTICO -->
+                    <div class="kanban-card danger-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="tag" style="background: #ef4444; color: white;">RISCO DE PERDA</span>
+                            <span style="font-size: 11px; font-weight: 800; color: #b91c1c;">VENCE EM 48H</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0; color: #991b1b;">Guaratuba • Saúde (FNS)</h4>
+                        <div style="font-size: 14px; font-weight: 800; color: #7f1d1d;">R$ 850.000,00</div>
+                        <p style="font-size: 12px; color: #7f1d1d; margin: 6px 0;">
+                            <strong>Parecer Negativo:</strong> Faltou planilha orçamentária assinada pelo engenheiro civil da prefeitura.
+                        </p>
+                        <button class="btn btn-sm btn-white" style="width: 100%; border: 1px solid #f87171; color: #991b1b;" onclick="alertPrefeitoDiligencia('Guaratuba', 'Falta planilha do engenheiro', '48 horas')">
+                            <i class="fa-brands fa-whatsapp"></i> Cobrar Prefeito no WhatsApp
+                        </button>
+                    </div>
+
+                    <div class="kanban-card danger-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="tag" style="background: #f59e0b; color: white;">DILIGÊNCIA</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #b45309;">VENCE EM 5 DIAS</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0; color: #92400e;">Piraí do Sul • Educação</h4>
+                        <div style="font-size: 14px; font-weight: 800; color: #78350f;">R$ 400.000,00</div>
+                        <p style="font-size: 12px; color: #92400e; margin: 6px 0;">
+                            Falta matrícula atualizada do terreno da creche no cartório de registro de imóveis.
+                        </p>
+                        <button class="btn btn-sm btn-white" style="width: 100%; border: 1px solid #fbbf24; color: #92400e;" onclick="alertPrefeitoDiligencia('Piraí do Sul', 'Matrícula do terreno da creche', '5 dias')">
+                            <i class="fa-brands fa-whatsapp"></i> Cobrar Secretário de Obras
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Coluna 4: Empenhada (Garantida) -->
+                <div class="kanban-col">
+                    <div class="kanban-col-header">
+                        <span>4. EMPENHADA (RECURSO GARANTIDO)</span>
+                        <span class="tag" style="background: #fef3c7; color: #92400e;">6</span>
+                    </div>
+
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-pl">MIN. ESPORTE</span>
+                            <span style="font-size: 11px; color: var(--emerald); font-weight: 700;">NOTA EMPENHO OK</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">Candói (PR)</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 550.000,00</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">Construção de Complexo Esportivo de Grama Sintética. Aguardando Ordem Bancária.</p>
+                    </div>
+
+                    <div class="kanban-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-indica">SAÚDE</span>
+                            <span style="font-size: 11px; color: var(--emerald); font-weight: 700;">NOTA EMPENHO OK</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0;">Francisco Beltrão</h4>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);">R$ 1.000.000,00</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">Equipamentos de Raio-X e Ultrassom para a UPA Central.</p>
+                    </div>
+                </div>
+
+                <!-- Coluna 5: Paga na Conta (Vitória Concluída) -->
+                <div class="kanban-col" style="border-top: 3px solid var(--emerald);">
+                    <div class="kanban-col-header" style="background: #dcfce7;">
+                        <span style="color: #166534;">5. PAGA NA CONTA (LIBERADA)</span>
+                        <span class="tag" style="background: #166534; color: white;">28 PAGAS</span>
+                    </div>
+
+                    <div class="kanban-card success-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-success">PAGA ONTEM</span>
+                            <span style="font-size: 11px; color: #166534; font-weight: 700;">OB 84920</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0; color: #166534;">Ponta Grossa</h4>
+                        <div style="font-size: 14px; font-weight: 800; color: #14532d;">R$ 1.500.000,00</div>
+                        <p style="font-size: 12px; color: #166534;">Asfalto no Bairro Nova Rússia. Dinheiro creditado na conta 12.480-X da Caixa.</p>
+                        <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 8px;" onclick="generateVictoryCard('Ponta Grossa', 'R$ 1.500.000,00', 'Asfalto Bairro Nova Rússia')">
+                            <i class="fa-solid fa-bullhorn"></i> Disparar Comunicação
+                        </button>
+                    </div>
+
+                    <div class="kanban-card success-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="tag tag-success">PAGA ESTA SEMANA</span>
+                            <span style="font-size: 11px; color: #166534; font-weight: 700;">OB 84112</span>
+                        </div>
+                        <h4 style="font-size: 14px; margin: 8px 0; color: #166534;">Cascavel</h4>
+                        <div style="font-size: 14px; font-weight: 800; color: #14532d;">R$ 800.000,00</div>
+                        <p style="font-size: 12px; color: #166534;">Duas Ambulâncias Tipo SAMU. Prefeitura já autorizou pregão de compra.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- MÓDULO 4: DOSSIÊ MUNICIPAL & CRM POLÍTICO (ARTICULAÇÃO DE BASE)     -->
+        <!-- ================================================================== -->
+        <section id="view-cidades" class="view-panel">
+            
+            <div class="grid-3">
+                
+                <!-- Coluna Esquerda: Lista de Cidades da Base -->
+                <div class="card" style="height: fit-content;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-city" style="color: var(--primary);"></i>
+                            Municípios da Base (65)
+                        </div>
+                    </div>
+
+                    <input type="text" class="input-field" placeholder="Buscar município..." style="margin-bottom: 12px;" onkeyup="filterCityList(this.value)">
+
+                    <div class="city-selector-list" id="citySelectorList">
+                        <div class="city-nav-item active" onclick="loadCityDetails('ponta-grossa')">
+                            <div>
+                                <strong>Ponta Grossa</strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">Campos Gerais • 358k hab.</div>
+                            </div>
+                            <span class="tag tag-success">R$ 4.2M</span>
+                        </div>
+                        <div class="city-nav-item" onclick="loadCityDetails('cascavel')">
+                            <div>
+                                <strong>Cascavel</strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">Oeste • 348k hab.</div>
+                            </div>
+                            <span class="tag tag-success">R$ 3.8M</span>
+                        </div>
+                        <div class="city-nav-item" onclick="loadCityDetails('guaratuba')">
+                            <div>
+                                <strong>Guaratuba</strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">Litoral • 38k hab.</div>
+                            </div>
+                            <span class="tag tag-req" style="background: #fee2e2; color: #b91c1c;">Diligência</span>
+                        </div>
+                        <div class="city-nav-item" onclick="loadCityDetails('laranjeiras')">
+                            <div>
+                                <strong>Laranjeiras do Sul</strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">Centro-Sul • 32k hab.</div>
+                            </div>
+                            <span class="tag tag-success">R$ 1.8M</span>
+                        </div>
+                        <div class="city-nav-item" onclick="loadCityDetails('patobranco')">
+                            <div>
+                                <strong>Pato Branco</strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">Sudoeste • 92k hab.</div>
+                            </div>
+                            <span class="tag tag-success">R$ 2.4M</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Centro e Direita: Dossiê Completo da Cidade Selecionada -->
+                <div style="grid-column: span 2;">
+                    
+                    <div class="card" id="cityDetailsCard">
+                        
+                        <!-- Cabeçalho da Cidade -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 20px;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <h2 style="font-size: 26px; color: var(--navy-900);" id="detailCityName">Ponta Grossa</h2>
+                                    <span class="tag tag-success" id="detailCityAlliance">Prefeito Aliado de 1ª Hora</span>
+                                </div>
+                                <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">
+                                    Região: Campos Gerais • Eleitorado: 260.000 eleitores
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-outline" onclick="openEditCityModal()"><i class="fa-solid fa-pen"></i> Atualizar Dossiê</button>
+                                <button class="btn btn-primary" onclick="openNewDemandModal()"><i class="fa-solid fa-plus"></i> Novo Pedido</button>
+                            </div>
+                        </div>
+
+                        <!-- 3 Cards de Resumo Político -->
+                        <div class="grid-3" style="margin-bottom: 20px;">
+                            <div class="info-block">
+                                <span class="info-label">Prefeito & Contato</span>
+                                <div class="info-value" id="detailMayor">Dr. Alisson Mendes (PSD)</div>
+                                <span style="font-size: 12px; color: var(--text-muted);">(42) 99821-4410 • WhatsApp</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Votação do Deputado (TSE 2022)</span>
+                                <div class="info-value" style="color: var(--primary);" id="detailVotes">18.420 votos</div>
+                                <span style="font-size: 12px; color: var(--text-muted);">Meta 2026: 25.000 votos</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Total de Recursos Destinados</span>
+                                <div class="info-value" style="color: var(--emerald);" id="detailTotalBudget">R$ 4.250.000,00</div>
+                                <span style="font-size: 12px; color: var(--text-muted);">4 Emendas Pagas / 1 em análise</span>
+                            </div>
+                        </div>
+
+                        <!-- Abas: Histórico de Emendas / Lideranças / Pedidos em Aberto -->
+                        <div class="tabs-nav">
+                            <button class="tab-btn active" onclick="switchCityTab('tab-emendas-cidade')">Emendas e Obras (5)</button>
+                            <button class="tab-btn" onclick="switchCityTab('tab-liderancas-cidade')">Lideranças & Vereadores Aliados (14)</button>
+                            <button class="tab-btn" onclick="switchCityTab('tab-pedidos-cidade')">Pedidos da População / Ofícios (8)</button>
+                        </div>
+
+                        <!-- Aba 1: Emendas da Cidade -->
+                        <div id="tab-emendas-cidade" class="tab-content active">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ano</th>
+                                        <th>Tipo / Objeto</th>
+                                        <th>Valor</th>
+                                        <th>Status Atual</th>
+                                        <th>Impacto Eleitoral</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2026</td>
+                                        <td>Pavimentação Asfáltica (Bairro Nova Rússia)</td>
+                                        <td><strong>R$ 1.500.000,00</strong></td>
+                                        <td><span class="tag tag-success">Paga na Conta</span></td>
+                                        <td>Atende 12 mil moradores</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025</td>
+                                        <td>Reforma e Tomógrafo para Hospital Regional</td>
+                                        <td><strong>R$ 1.800.000,00</strong></td>
+                                        <td><span class="tag tag-success">Obra Entregue</span></td>
+                                        <td>Inaugurado com o Deputado</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025</td>
+                                        <td>3 Vans Escolares com Acessibilidade</td>
+                                        <td><strong>R$ 950.000,00</strong></td>
+                                        <td><span class="tag tag-success">Entregues</span></td>
+                                        <td>Secretaria de Educação</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Aba 2: Lideranças da Cidade -->
+                        <div id="tab-liderancas-cidade" class="tab-content">
+                            <div class="grid-2">
+                                <div class="leader-card">
+                                    <div class="leader-avatar">PM</div>
+                                    <div>
+                                        <strong>Prof. Marcos Andrade</strong>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Presidente da Câmara de Vereadores (União)</div>
+                                        <div style="font-size: 12px; color: var(--emerald); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Coordenador da Região Norte</div>
+                                    </div>
+                                </div>
+                                <div class="leader-card">
+                                    <div class="leader-avatar">DR</div>
+                                    <div>
+                                        <strong>Dona Regina Siqueira</strong>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Presidente da Associação Comercial e Empresarial</div>
+                                        <div style="font-size: 12px; color: var(--primary); font-weight: 600;"><i class="fa-solid fa-handshake"></i> Articuladora no Setor Industrial</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aba 3: Pedidos em Aberto -->
+                        <div id="tab-pedidos-cidade" class="tab-content">
+                            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <strong>Ofício n.º 142/26 – Gabinete do Prefeito</strong>
+                                    <span class="tag tag-pl">Aguardando Encaixe em Edital</span>
+                                </div>
+                                <p style="font-size: 13px; color: var(--text-secondary); margin: 6px 0;">
+                                    Solicita R$ 800 mil para revitalização da iluminação pública com lâmpadas LED na Av. Souza Naves.
+                                </p>
+                                <button class="btn btn-sm btn-primary" onclick="linkDemandToEdital('Ofício 142/26', 'Edital Min. Cidades')">
+                                    <i class="fa-solid fa-link"></i> Vincular ao Edital do Min. Cidades
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- MÓDULO 5: APP MOBILE DA PONTA (LIDERANÇA & CABO ELEITORAL)          -->
+        <!-- ================================================================== -->
+        <section id="view-campo" class="view-panel">
+            
+            <div style="max-width: 900px; margin: 0 auto;">
+                <div class="card" style="margin-bottom: 24px; text-align: center; background: linear-gradient(135deg, #0284c7, #0369a1); color: white;">
+                    <h2 style="font-size: 24px; margin-bottom: 6px;">Aplicativo da Ponta • Assessores de Campo e Lideranças</h2>
+                    <p style="font-size: 14px; color: #e0f2fe; max-width: 650px; margin: 0 auto;">
+                        Interface compacta otimizada para o celular do cabo eleitoral registrar pedidos da comunidade e receber materiais oficiais de prestação de contas.
+                    </p>
+                </div>
+
+                <div class="grid-2">
+                    
+                    <!-- Simulação Mobile: Enviar Pedido da Comunidade -->
+                    <div class="mobile-frame-container">
+                        <div class="mobile-frame-header">
+                            <span><i class="fa-solid fa-signal"></i> 5G</span>
+                            <span>Mandato Móvel</span>
+                            <span><i class="fa-solid fa-battery-full"></i> 98%</span>
+                        </div>
+                        
+                        <div class="mobile-frame-body">
+                            <div class="mobile-user-card">
+                                <div class="user-avatar" style="width: 40px; height: 40px; font-size: 14px;">LS</div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 14px;">Luciana Santos</div>
+                                    <div style="font-size: 11px; color: #64748b;">Liderança • Distrito Vila Esperança</div>
+                                </div>
+                            </div>
+
+                            <h4 style="font-size: 15px; margin: 16px 0 8px 0; color: var(--navy-900);">
+                                <i class="fa-solid fa-circle-plus" style="color: var(--primary);"></i> Registrar Demanda da Comunidade
+                            </h4>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                                Envie fotos e detalhes do bairro direto para a equipe de Brasília analisar:
+                            </p>
+
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="text" id="mobTitulo" class="input-field" placeholder="Ex: Reforma da Sala de Vacinas da UBS...">
+                                <select id="mobArea" class="input-select">
+                                    <option value="Saúde">Saúde (Postinho, Remédio, Ambulância)</option>
+                                    <option value="Agricultura">Agricultura / Estrada Rural</option>
+                                    <option value="Infraestrutura">Infraestrutura (Asfalto, Bueiro, Luz)</option>
+                                    <option value="Educação">Educação / Escola do Bairro</option>
+                                </select>
+                                <textarea id="mobDescricao" class="input-field" style="height: 70px;" placeholder="Explique a urgência da comunidade..."></textarea>
+                                
+                                <div class="upload-fake-box" onclick="simulateAttachPhoto()">
+                                    <i class="fa-solid fa-camera"></i> <span id="photoStatusText">Tirar Foto do Local (Opcional)</span>
+                                </div>
+
+                                <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="submitMobileDemand()">
+                                    <i class="fa-solid fa-paper-plane"></i> Enviar Pedido para o Gabinete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lado Direito: Central de Materiais de Prestação de Contas -->
+                    <div>
+                        <div class="card">
+                            <div class="card-title" style="margin-bottom: 12px;">
+                                <i class="fa-solid fa-share-nodes" style="color: var(--emerald);"></i>
+                                Materiais Prontos para Compartilhar no WhatsApp
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                                Cards e textos oficiais gerados pelo gabinete para o cabo eleitoral divulgar no bairro:
+                            </p>
+
+                            <div class="share-card">
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <div style="background: #dcfce7; color: #15803d; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                        <i class="fa-solid fa-shield-heart"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; font-size: 13px;">Card: R$ 800 mil para Saúde de Cascavel</div>
+                                        <div style="font-size: 11px; color: var(--text-muted);">Aquisição de 2 novas ambulâncias</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 10px;" onclick="shareCardWhatsApp('Cascavel Ambulâncias')">
+                                    <i class="fa-brands fa-whatsapp"></i> Compartilhar no Grupo do Bairro
+                                </button>
+                            </div>
+
+                            <div class="share-card" style="margin-top: 12px;">
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <div style="background: #eff6ff; color: #1d4ed8; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                        <i class="fa-solid fa-road"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; font-size: 13px;">Card: Asfalto no Bairro Nova Rússia (Ponta Grossa)</div>
+                                        <div style="font-size: 11px; color: var(--text-muted);">R$ 1.5 milhão de emenda paga</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-emerald" style="width: 100%; margin-top: 10px;" onclick="shareCardWhatsApp('Ponta Grossa Asfalto')">
+                                    <i class="fa-brands fa-whatsapp"></i> Compartilhar no Grupo do Bairro
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card de Metas da Liderança -->
+                        <div class="card" style="margin-top: 16px;">
+                            <div class="card-title" style="margin-bottom: 8px; font-size: 14px;">
+                                <i class="fa-solid fa-users" style="color: var(--purple);"></i> Minha Rede de Eleitores Cadastrados
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 800; color: var(--navy-900);">142 pessoas</div>
+                                    <span style="font-size: 12px; color: var(--text-muted);">Cadastradas no Distrito Vila Esperança</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="openNewVoterModal()">
+                                    <i class="fa-solid fa-user-plus"></i> Novo Cadastro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- MODAL DE ANÁLISE DE MATCH IA -->
+    <div id="aiMatchModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modalMatchTitle"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> Match de Cidades Elegíveis</h3>
+                <button class="btn-close" onclick="closeAIMatchModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                    A IA cruzou os critérios do edital federal com o perfil demográfico e orçamentário dos municípios da base do deputado:
+                </p>
+                <div id="modalMatchList" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAIMatchModal()">Fechar</button>
+                <button class="btn btn-emerald" id="btnModalBroadcast" onclick="executeBroadcastFromModal()">
+                    <i class="fa-brands fa-whatsapp"></i> Enviar Mensagem para Todos os Prefeitos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CADASTRO DE NOVA INDICAÇÃO -->
+    <div id="newEmendaModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> Cadastrar Indicação de Emenda</h3>
+                <button class="btn-close" onclick="closeNewEmendaModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700;">Município Destinatário:</label>
+                    <input type="text" id="modalEmendaCidade" class="input-field" placeholder="Ex: Castro">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700;">Tipo de Emenda:</label>
+                    <select id="modalEmendaTipo" class="input-select">
+                        <option value="Transferência Especial (Pix)">Transferência Especial (Emenda Pix)</option>
+                        <option value="Saúde (FNS)">Saúde (Fundo Nacional de Saúde)</option>
+                        <option value="Agricultura (MAPA)">Agricultura (MAPA)</option>
+                        <option value="Cidades / Infraestrutura">Cidades / Infraestrutura</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700;">Valor (R$):</label>
+                    <input type="text" id="modalEmendaValor" class="input-field" placeholder="Ex: 500.000,00">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700;">Objeto / Justificativa:</label>
+                    <textarea id="modalEmendaObjeto" class="input-field" style="height: 60px;" placeholder="Ex: Reforma do Centro Comunitário..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeNewEmendaModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveNewEmenda()"><i class="fa-solid fa-save"></i> Salvar na Esteira</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTAINER DE TOASTS -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- JavaScript Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
