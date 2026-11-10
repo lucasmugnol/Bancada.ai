@@ -314,9 +314,12 @@
                             Monitoramento contínuo do Transferegov, FNS, FNDE, MAPA, Cidades e Diário Oficial da União. Chega de caçar em dezenas de sites!
                         </p>
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-emerald" id="btnLivePncp" onclick="fetchLivePncpEditais()">
+                            <i class="fa-solid fa-satellite-dish"></i> Puxar Editais Oficiais ao Vivo (PNCP)
+                        </button>
                         <button class="btn btn-primary" onclick="simulateSyncEditais()">
-                            <i class="fa-solid fa-rotate"></i> Sincronizar Agora
+                            <i class="fa-solid fa-rotate"></i> Sincronizar Programas
                         </button>
                     </div>
                 </div>

@@ -411,6 +411,128 @@ function filterEditaisKeyword(keyword) {
 }
 
 /* --------------------------------------------------------------------------
+   3.1 Robô Coletor: Consulta Oficial ao Vivo na API do PNCP (Lei 14.133/2021)
+   -------------------------------------------------------------------------- */
+async function fetchLivePncpEditais() {
+    const btn = document.getElementById('btnLivePncp');
+    const container = document.getElementById('liveEditaisFeedContainer');
+    const statusText = document.getElementById('radarStatusText');
+    const badgeEditais = document.getElementById('badgeEditais');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Conectando à API Federal do PNCP...';
+    }
+
+    if (statusText) {
+        statusText.innerHTML = '<span style="color: var(--primary); font-weight: 700;">📡 Robô Coletor conectando ao endpoint oficial: pncp.gov.br/api/consulta/v1...</span>';
+    }
+
+    container.innerHTML = `
+        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 30px; text-align: center;">
+            <i class="fa-solid fa-cloud-arrow-down fa-spin" style="font-size: 36px; color: var(--emerald); margin-bottom: 12px;"></i>
+            <h4 style="font-size: 16px; color: var(--navy-900); margin-bottom: 6px;">Consultando o Portal Nacional de Contratações Públicas (PNCP)</h4>
+            <p style="font-size: 12px; color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+                Consumindo endpoint público oficial da Presidência da República / MGI (Lei Federal 14.133/2021). Aguarde o retorno do payload em JSON...
+            </p>
+        </div>
+    `;
+
+    const startTime = performance.now();
+    const endpointUrl = 'https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial=20241001&dataFinal=20241003&codigoModalidadeContratacao=8&pagina=1&tamanhoPagina=10';
+
+    try {
+        const response = await fetch(endpointUrl, {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        const duration = Math.round(performance.now() - startTime);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} (${response.statusText})`);
+        }
+
+        const json = await response.json();
+        const listaContratacoes = json.data || [];
+
+        if (statusText) {
+            statusText.innerHTML = `✓ <strong>Conexão PNCP Concluída em ${duration}ms!</strong> ${json.totalRegistros || listaContratacoes.length} Editais e Contratações Públicas Oficiais encontradas no banco federal.`;
+        }
+
+        if (badgeEditais) badgeEditais.textContent = listaContratacoes.length;
+
+        // Renderiza os editais 100% REAIS da API do governo
+        container.innerHTML = `
+            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; color: #065f46; font-weight: 700;">
+                    <i class="fa-solid fa-circle-check"></i> DADOS OFICIAIS RETORNADOS DA API NACIONAL DO GOVERNO FEDERAL (PNCP / MGI)
+                </span>
+                <span class="tag tag-success" style="font-size: 10px;">LATÊNCIA: ${duration} MS</span>
+            </div>
+        ` + listaContratacoes.map(item => {
+            const orgao = item.orgaoEntidade?.razaoSocial || 'Órgão Federal';
+            const cidade = item.unidadeOrgao?.municipioNome || 'Município';
+            const uf = item.unidadeOrgao?.ufSigla || 'BR';
+            const valor = item.valorTotalEstimado 
+                ? 'R$ ' + item.valorTotalEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : 'Valor Sob Demanda';
+            const objeto = item.objetoCompra || 'Objeto da contratação pública';
+            const numeroPNCP = item.numeroControlePNCP || 'PNCP Oficial';
+            const dataPub = item.dataPublicacaoPncp ? item.dataPublicacaoPncp.split('T')[0] : 'Recente';
+
+            return `
+                <div class="edital-card highlight">
+                    <div class="edital-header">
+                        <div>
+                            <span class="tag tag-success"><i class="fa-solid fa-stamp"></i> EDITAL OFICIAL PNCP • LEI 14.133</span>
+                            <span class="tag tag-pl">${cidade} (${uf})</span>
+                            <h3 style="font-size: 15px; margin: 8px 0; color: var(--navy-900); line-height: 1.4;">
+                                ${objeto}
+                            </h3>
+                            <div style="font-size: 11px; color: var(--text-muted);">
+                                <strong>Órgão:</strong> ${orgao} • <strong>Nº PNCP:</strong> ${numeroPNCP}
+                            </div>
+                        </div>
+                        <div class="edital-badge-puro">
+                            <div class="edital-valor">${valor}</div>
+                            <span class="edital-prazo" style="color: #047857;"><i class="fa-solid fa-calendar-check"></i> Publicado: ${dataPub}</span>
+                        </div>
+                    </div>
+
+                    <div class="edital-footer">
+                        <div class="ai-match-tag">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>IA Match:</strong> Oportunidade para articulação com o município de ${cidade} (${uf})
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-outline" onclick="showToast('Abrindo processo oficial nº ${numeroPNCP}', 'info')">
+                                <i class="fa-solid fa-file-contract"></i> Ver Detalhes PNCP
+                            </button>
+                            <button class="btn btn-sm btn-emerald" onclick="prepareWhatsAppBroadcast('${objeto.substring(0, 40)}...', '${valor}', '${cidade}')">
+                                <i class="fa-brands fa-whatsapp"></i> Avisar Prefeito de ${cidade}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        showToast(`${listaContratacoes.length} Editais e Contratações Oficiais carregados ao vivo do PNCP!`, 'success');
+
+    } catch (err) {
+        if (statusText) {
+            statusText.innerHTML = `<span style="color: #b91c1c; font-weight: 700;">Erro ao consultar PNCP: ${err.message}. Chaveando para modo de redundância.</span>`;
+        }
+        showToast(`Erro na requisição PNCP: ${err.message}`, 'error');
+        autoLoadEditais();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Puxar Editais Oficiais ao Vivo (PNCP)';
+        }
+    }
+}
+
+/* --------------------------------------------------------------------------
    4. Esteira de Emendas Parlamentares (Carregamento Automático com SIOP)
    -------------------------------------------------------------------------- */
 const databaseEmendas = [
